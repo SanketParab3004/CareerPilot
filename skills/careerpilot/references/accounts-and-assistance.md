@@ -44,3 +44,7 @@ The existing `pause` operation atomically saves the job blocker and creates an a
 **Assistance** shows requests and sent/failed/pending delivery status. Retry notifications there after fixing configuration. Resolve the actual blocker through Chrome Remote Desktop, enter a resolution note, and select **Resolved — return to queue**. This changes the job to Preparing and closes its request. The user can then use **Continue with AI** to re-inspect and resume it; this button provides a prompt, not an autonomous background agent.
 
 Technical references: [Telegram Bot API](https://core.telegram.org/bots/api), [Windows DPAPI](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata).
+
+## Stage 1 backlog integration
+
+Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-tenant login sessions, batched candidate answers, recovery gates, deadline/freshness records and candidate-sent application drafts. Save a live `freshness-record` before tailoring or form work. `resume` now schedules live inspection; it does not establish that the form is safe. The dashboard Action queue groups by type or site, accepts candidate answers and login completion, shows handoff drafts, and records candidate-reported sending. It never executes application submissions or sends email.

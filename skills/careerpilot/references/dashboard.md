@@ -50,3 +50,7 @@ Version 0.7 adds Email updates. Its local same-origin POST routes email-config, 
 
 
 Version 0.8 defaults to LinkedIn + Indeed required primary portal searches. The same-origin POST portal-search saves an awaiting-agent request and opens a copyable host prompt. Primary lists include only verified employer/ATS applications and record exclusion reasons and each required source outcome. Search mode explicitly distinguishes supplementary public feeds. Existing historical lists remain available and are not retroactively certified. See [primary portal workflow](portal-search.md).
+
+## Stage 1 backlog integration
+
+Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-tenant login sessions, batched candidate answers, recovery gates, deadline/freshness records and candidate-sent application drafts. Save a live `freshness-record` before tailoring or form work. `resume` now schedules live inspection; it does not establish that the form is safe. The dashboard Action queue groups by type or site, accepts candidate answers and login completion, shows handoff drafts, and records candidate-reported sending. It never executes application submissions or sends email.

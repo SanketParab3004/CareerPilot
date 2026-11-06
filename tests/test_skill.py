@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 import zipfile
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -13,6 +14,8 @@ def load(name, path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+sys.path.insert(0, str(ROOT / 'skills/careerpilot/scripts'))
 
 toolkit = load('toolkit', ROOT / 'skills' / 'careerpilot' / 'scripts' / 'toolkit.py')
 installer = load('installer', ROOT / 'tools' / 'install_skill.py')
@@ -34,7 +37,9 @@ class SkillTests(unittest.TestCase):
         return self.ws.mutate({'op': op, **data})
 
     def job(self, number=1):
-        return self.run_op('job-add', title='Analyst', company='Example', url=f'https://example.org/jobs/{number}', description='SQL experience', source='Test fixture')['job_id']
+        jid = self.run_op('job-add', title='Analyst', company='Example', url=f'https://example.org/jobs/{number}', description='SQL experience', source='Test fixture')['job_id']
+        self.run_op('freshness-record', job_id=jid, open=True, route_valid=True, route_url='https://example.org/apply', checked_at=datetime.now(timezone.utc).isoformat(), evidence='Synthetic fixture posting open and route verified')
+        return jid
 
     def ready(self, jid):
         self.run_op('select', job_id=jid)
@@ -82,7 +87,10 @@ class SkillTests(unittest.TestCase):
         self.checkpoint(jid, unresolved=['Required phone'])
         with self.assertRaises(ValueError):
             self.run_op('ready', job_id=jid)
-        self.checkpoint(jid)
+        question = next(iter(self.ws.read()['backlog']['questions']))
+        answer = self.run_op('answer-save', question_id=question, value='Synthetic phone', evidence='Synthetic candidate answer')['answer_id']
+        self.run_op('resume-inspect', job_id=jid, page_url='https://example.org/apply', result='safe', checked_at=datetime.now(timezone.utc).isoformat(), evidence='Synthetic live form inspection')
+        self.checkpoint(jid, answers=[{'field':'Required phone','value':'Synthetic phone','source':'candidate answer '+answer}])
         self.run_op('profile-save', profile={'name':'Changed Candidate'})
         with self.assertRaises(ValueError):
             self.run_op('ready', job_id=jid)

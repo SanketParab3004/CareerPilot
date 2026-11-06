@@ -35,3 +35,7 @@ Omit unknown facts. Store relevant applicant answers only when volunteered/confi
 6. Register actual files with `document-add`: resume, cover_letter, or other. The helper copies each file into the workspace and records a SHA-256 digest. Each changed file invalidates earlier approval snapshots. Preserve the final exact version used for an application.
 
 Use available document tools without requiring a particular vendor. A second review may be useful when the host supports it and delegation is authorized; it is not a mandatory extra model call.
+
+## Stage 1 backlog integration
+
+Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-tenant login sessions, batched candidate answers, recovery gates, deadline/freshness records and candidate-sent application drafts. Save a live `freshness-record` before tailoring or form work. `resume` now schedules live inspection; it does not establish that the form is safe. The dashboard Action queue groups by type or site, accepts candidate answers and login completion, shows handoff drafts, and records candidate-reported sending. It never executes application submissions or sends email.

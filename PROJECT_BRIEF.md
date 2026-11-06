@@ -68,3 +68,7 @@ Host-run Gmail review workflow and Email updates dashboard: mailbox scope prefer
 ## Delivered in 0.8
 
 Required LinkedIn/Indeed primary search requests; external employer/ATS route verification; exclusion of Easy Apply, Indeed-hosted, mixed and unknown routes; required per-source coverage; exclusion audit; original portal and destination links; low-score retention and cross-portal employer-URL deduplication. The dashboard defaults to host-agent handoff. Public feeds remain an explicitly chosen supplementary mode. No direct LinkedIn/Indeed scraper is bundled.
+
+## Stage 1 — interview-oriented workflow foundations (0.9.0)
+
+Clear candidate blockers before increasing application volume: canonical prioritized actions, exact-tenant login batches, structured blockers preserving original text, context-scoped reusable answers, append-only checkpoints with live recovery, closing dates and freshness gates, candidate-only application handoffs, and the dashboard Action queue. Core stays standard-library and host-independent. No later-stage features are included.

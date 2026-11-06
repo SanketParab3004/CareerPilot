@@ -17,3 +17,7 @@ Deduplicate before ranking. The helper removes common tracking parameters and fr
 For each role, assess required skills, experience, location/work arrangement, career relevance and user deal-breakers. Separate mandatory requirements from preferences. Distinguish unknown eligibility from a confirmed mismatch. Record strengths, gaps, unknowns, recommendation and evidence excerpts with `evaluate`. An optional 0–100 score must include its rationale; it is a comparison aid, not a hiring probability. Do not present simple keyword overlap as AI fit.
 
 Return a compact shortlist with source links. Selecting a job for preparation is recorded with `select`; searching/ranking alone does not put jobs into the application queue. Selection can follow the user's explicit batch instructions without asking again.
+
+## Stage 1 backlog integration
+
+Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-tenant login sessions, batched candidate answers, recovery gates, deadline/freshness records and candidate-sent application drafts. Save a live `freshness-record` before tailoring or form work. `resume` now schedules live inspection; it does not establish that the form is safe. The dashboard Action queue groups by type or site, accepts candidate answers and login completion, shows handoff drafts, and records candidate-reported sending. It never executes application submissions or sends email.

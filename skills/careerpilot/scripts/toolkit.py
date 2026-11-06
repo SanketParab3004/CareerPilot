@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Portable state, review, and local dashboard tools. No job-site automation."""
 import argparse
+import copy
+import backlog
 import hashlib
 import html
 import json
@@ -12,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-VERSION = '0.8.0'
+VERSION = '0.9.0'
 TERMINAL = {'Submitted', 'Interview', 'Rejected', 'Offer', 'Withdrawn', 'Expired'}
 ACTIVE = {'Selected', 'Preparing', 'Filling', 'Ready for review'}
 
@@ -46,7 +48,7 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def fresh():
-    return {'schema_version': 1, 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
+    return {'schema_version': 2, 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
 
 def summary(state):
     counts = {}
@@ -76,24 +78,60 @@ class Workspace:
             ignore.write_text('*\n!.gitignore\n', encoding='utf-8')
         return {'workspace': str(self.root), 'initialized': True}
 
+    def migrate(self):
+        require(self.db_path.exists(), 'Workspace does not exist; run init first')
+        db = sqlite3.connect(self.db_path, timeout=10)
+        try:
+            db.execute('BEGIN IMMEDIATE')
+            state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
+            if state.get('schema_version') == 2:
+                db.rollback()
+                return {'schema_version': 2, 'migrated': False}
+            require(state.get('schema_version') == 1, 'Unsupported workspace schema')
+            folder = self.root / 'backups'
+            folder.mkdir(exist_ok=True)
+            backup = folder / ('schema-1-' + uuid.uuid4().hex + '.sqlite3')
+            # A separate reader can copy the pre-migration snapshot while this
+            # reserved write transaction prevents concurrent state changes.
+            source = sqlite3.connect(self.db_path.as_uri() + '?mode=ro', uri=True)
+            target = sqlite3.connect(backup)
+            try:
+                source.backup(target)
+                require(target.execute('PRAGMA integrity_check').fetchone()[0] == 'ok', 'Backup verification failed')
+            finally:
+                target.close()
+                source.close()
+            backlog.upgrade(state)
+            state.setdefault('migrations', []).append({'version':2, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
+            db.commit()
+            return {'schema_version':2, 'migrated':True, 'backup':str(backup)}
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
     def read(self):
         require(self.db_path.exists(), 'Workspace does not exist; run init first')
+        self.migrate()
         db = sqlite3.connect(self.db_path)
         try:
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 1, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 2, 'Unsupported workspace schema')
             return state
         finally:
             db.close()
 
     def mutate(self, request):
         require(isinstance(request, dict), 'Request must be an object')
+        self.migrate()
         require(self.db_path.exists(), 'Workspace does not exist; run init first')
         db = sqlite3.connect(self.db_path, timeout=10)
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 1, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 2, 'Unsupported workspace schema')
             result = self.apply(state, request)
             state['events'].append({'at': utc(), 'op': request['op'], 'job_id': request.get('job_id'), 'result': result})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
@@ -122,6 +160,8 @@ class Workspace:
 
     def apply(self, state, data):
         op = text(data.get('op'), 'op')
+        if op in backlog.OPS:
+            return backlog.apply(self, state, data)
         if op.startswith('portal-'):
             from portal_search import apply
             return apply(self, state, data)
@@ -238,6 +278,8 @@ class Workspace:
                    'retrieved_at': utc(), 'status': 'Saved', 'documents': [], 'contacts': [], 'notes': [],
                    'outreach': [], 'attempts': [], 'created_at': utc(), 'updated_at': utc()}
             state['jobs'][jid] = job
+            if data.get('closing_at') is not None:
+                self.apply(state, dict(op='deadline-set', job_id=jid, closing_at=data['closing_at'], evidence=data.get('closing_evidence')))
             return {'job_id': jid, 'duplicate': False}
         if op == 'authorize':
             ids = data.get('job_ids')
@@ -266,6 +308,7 @@ class Workspace:
         require(isinstance(jid, str) and jid in state['jobs'], 'Unknown job_id')
         job = state['jobs'][jid]
         old_status = job['status']
+        backlog.guard(state, job, op)
         if op == 'evaluate':
             evaluation = data.get('evaluation')
             require(isinstance(evaluation, dict), 'evaluation must be an object')
@@ -315,11 +358,19 @@ class Workspace:
                 require(isinstance(answer, dict), 'Each answer must be an object')
                 for k in ['field', 'value', 'source']:
                     text(answer.get(k), f'answer.{k}')
+                backlog.safe_field(answer['field'])
+            for field, pending in job.get('pending_answers', {}).items():
+                require(any(a['field'] == field and a['value'] == pending['value'] and a['source'] == pending['source'] for a in checkpoint['answers']), 'Checkpoint must confirm every pending candidate answer with its source')
+            job['pending_answers'] = {}
             job['checkpoint'] = dict(checkpoint, recorded_at=utc(), profile_revision=state['profile_revision'])
+            job.setdefault('checkpoint_history', []).append(copy.deepcopy(job['checkpoint']))
+            backlog.checkpoint_questions(state, job)
             job['review'] = None
             job['status'] = 'Filling'
         elif op == 'pause':
             require(old_status in ACTIVE, 'Cannot pause a terminal or uncertain submission')
+            backlog.add_blocker(state, job, data)
+            job['resume_required'] = True
             job['resume_status'] = 'Preparing'
             job['blocker'] = text(data.get('reason'), 'pause reason')
             job['next_action'] = text(data.get('next_action'), 'next action')
@@ -334,6 +385,9 @@ class Workspace:
             job['notes'].append({'at': utc(), 'text': text(data.get('note'), 'resolution note')})
             job['status'] = 'Preparing'
             job['blocker'] = ''
+            job['resume_required'] = True
+            for blocker in backlog.open_blockers(state, jid):
+                blocker.update(status='resolved', resolution=data['note'])
             for item in state.get('assistance', {}).values():
                 if item['job_id'] == jid and item['status'] == 'open':
                     item['status'] = 'resolved'
@@ -426,7 +480,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ['init', 'status', 'next', 'report', 'export', 'accounts']:
+    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue']:
         sub.add_parser(name)
     dashboard = sub.add_parser('dashboard', help='Serve the live local read-only dashboard')
     dashboard.add_argument('--port', type=int, default=8765)
@@ -444,6 +498,8 @@ def main():
             return 0
         elif args.command == 'init':
             result = ws.initialize()
+        elif args.command == 'migrate':
+            result = ws.migrate()
         elif args.command == 'run':
             payload = sys.stdin.read() if args.input == '-' else Path(args.input).read_text(encoding='utf-8-sig')
             result = ws.mutate(json.loads(payload))
@@ -455,10 +511,12 @@ def main():
             result = ws.report()
         else:
             state = ws.read()
-            if args.command == 'status':
+            if args.command == 'queue':
+                result = {'items': backlog.queue(state)}
+            elif args.command == 'status':
                 result = summary(state)
             elif args.command == 'next':
-                result = {'job': next((j for j in state['jobs'].values() if j['status'] in {'Selected', 'Preparing'}), None),
+                result = {'action_queue': backlog.queue(state), 'job': next((j for j in state['jobs'].values() if j['status'] in {'Selected', 'Preparing'} and not j.get('resume_required') and backlog.freshness_ok(j) and not backlog.open_blockers(state, j['id'])), None),
                           'in_flight': [j['id'] for j in state['jobs'].values() if j['status'] in {'Filling', 'Submitting', 'Submission uncertain'}]}
             elif args.command == 'show':
                 require(not args.job or args.job in state['jobs'], 'Unknown job ID')

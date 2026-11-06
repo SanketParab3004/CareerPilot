@@ -39,3 +39,7 @@ The helper coordinates state; only actual browser observations establish form co
 
 
 For login/signup, read [Accounts and assistance](accounts-and-assistance.md). Reuse exact-site login/signup permissions saved by the user; use the secure fill bridge or password-manager autofill. Pause for unsupported credential delivery, MFA, CAPTCHA, unknown signup facts, or a new unapproved identity-provider origin. Every `pause` now creates an assistance request and attempts the configured Telegram alert. Do not send a second ad hoc notification. After manual resolution, re-inspect the current browser page before continuing.
+
+## Stage 1 backlog integration
+
+Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-tenant login sessions, batched candidate answers, recovery gates, deadline/freshness records and candidate-sent application drafts. Save a live `freshness-record` before tailoring or form work. `resume` now schedules live inspection; it does not establish that the form is safe. The dashboard Action queue groups by type or site, accepts candidate answers and login completion, shows handoff drafts, and records candidate-reported sending. It never executes application submissions or sends email.

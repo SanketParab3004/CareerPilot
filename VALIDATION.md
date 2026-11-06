@@ -65,3 +65,34 @@ The dark desktop interface was visually inspected. No console errors/warnings we
 - Isolated browser check verified LinkedIn + Indeed as the default source mode, saved a Data Analyst/Toronto request and observed the host-agent prompt with required sources and external-only exclusions. No public-feed worker started for this primary request.
 - No live LinkedIn/Indeed job search, login or employer application was performed. Retrieval is a host workflow, and source access/coverage remain dependent on the user's permitted connected tools.
 - Existing user profiles, resume documents, job/application records and historical searches were not modified by the release tests.
+
+## Stage 1 / release 0.9.0 validation
+
+November 6, 2026: 86 synthetic Python tests passed, zero failures or skips.
+New coverage includes schema-1 backup integrity and original-state preservation,
+idempotent migration on a temporary database copy, backup/transformation failures,
+unknown-schema rejection, queue priorities/fields, exact-tenant and frozen login
+batches, scoped reusable answers, secrets rejection, checkpoint history and pending
+answer guards, stale/wrong-route inspection, uncertain submission/no retry,
+closing-date/freshness gates, personal-send handoffs, and protected dashboard actions.
+The real job-search-workspace was not read or modified during this stage's tests.
+
+Earlier runs exposed Windows sandbox temporary-directory permissions, four test
+SQLite-handle cleanup errors (fixed with explicit connection closing), and intermittent
+ConnectionAbortedError [WinError 10053] on rejected dashboard POST requests. The
+server now drains bounded small request bodies before rejecting them, without
+parsing or executing unauthorized requests. No outstanding test failure remains.
+
+JavaScript passed node --check. A localhost browser check with synthetic data verified
+Action queue navigation, type/tenant grouping, visible deadline/effort/reason/evidence
+and candidate-answer controls; no browser warnings/errors were reported. This did
+not exercise real login, live employer forms, mail sending, mobile layout, or a
+background agent. Login continuation is performed by the connected host; the
+dashboard supplies a saved session and copyable continuation prompt. Deadline
+warnings are in the live queue, not a new scheduled push service.
+
+Package command: python tools/package_skill.py (28 portable source files).
+Schema 2 automatically backs up/migrates on first use; stop old processes first.
+Read references/backlog.md for new freshness and recovery gates. Existing installed
+skill copies are not silently overwritten; update them through the normal installer
+workflow. No model client or third-party core dependency was added.

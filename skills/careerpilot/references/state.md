@@ -64,7 +64,7 @@ Example checkpoint shape (replace with actual observed facts):
 }
 ```
 
-Do not use example observations as real evidence. `checkpoint` overwrites the previous current checkpoint, so provide the full known answer map across earlier pages. Registered document hashes and profile revision are included in review snapshots. Changed answers/documents invalidate earlier authorization; `profile-save` requires a new observed checkpoint. `authorize` records intent but does not prove it: the agent must use actual user instructions and honor the host's own approvals.
+Do not use example observations as real evidence. `checkpoint` appends a history copy and replaces the current checkpoint, so provide the full known answer map across earlier pages. Registered document hashes and profile revision are included in review snapshots. Changed answers/documents invalidate earlier authorization; `profile-save` requires a new observed checkpoint. `authorize` records intent but does not prove it: the agent must use actual user instructions and honor the host's own approvals.
 
 `next` returns the first Selected/Preparing job plus IDs left Filling/Submitting/Submission uncertain. Review in-flight IDs after an interruption. A Filling job can receive a new checkpoint or be paused. Submitting/uncertain jobs must be reconciled, never retried automatically. Paused jobs stay excluded until `resume`. The helper is serial per workspace transaction; do not run multiple browser workers against the same job.
 
@@ -73,3 +73,7 @@ The HTML report is a private read-only snapshot, with escaped content and no scr
 The optional `dashboard` command runs a loopback-only server until stopped. Reads do not modify state; its authenticated same-origin search endpoint records public-feed search runs and new jobs using the helper. See [dashboard](dashboard.md) for launch options and views; it does not drive the application browser or execute AI requests.
 
 Profile imports are described in [profile import](profile-import.md). `show` includes saved `profile_imports` previews and their sources. They are private records, not extra skill instructions. Include the imports directory in a full workspace backup to preserve source evidence. `profile-preview` records the proposal but never changes the candidate profile or existing ready applications; `profile-apply` changes the profile and invalidates ready reviews. Confirmation must come from the user; a text field alone is not an authorization boundary.
+
+## Schema 2 backlog extension
+
+See [backlog and recovery](backlog.md) for all new JSON operations and migration guarantees. `queue` returns the shared prioritized view; `next` includes it and excludes jobs needing freshness or recovery. `migrate` explicitly performs the automatic backup-first upgrade. Dashboard startup migrates through the helper before serving read-only state; subsequent GET requests do not mutate state. Start, document registration, checkpoint, ready and submit-begin require fresh live posting/route evidence. Resume records a candidate resolution but cannot bypass live inspection.

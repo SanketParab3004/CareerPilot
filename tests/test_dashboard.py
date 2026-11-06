@@ -1,4 +1,5 @@
 import hashlib
+from datetime import datetime, timezone
 import http.client
 import json
 import sqlite3
@@ -51,6 +52,22 @@ class DashboardTests(unittest.TestCase):
         self.ws.mutate({'op':'profile-save', 'profile':{'name':'Synthetic Candidate'}})
         self.assertEqual(json.loads(self.get('api/state')[2])['state']['profile']['name'], 'Synthetic Candidate')
 
+    def test_action_queue_and_answer_controls(self):
+        jid=self.ws.mutate(dict(op='job-add',title='Synthetic',company='Fixture',description='Test',source='Test',url='https://example.invalid/job'))['job_id']
+        q=self.ws.mutate(dict(op='question-add',job_id=jid,question='Preferred arrangement?',context='candidate.preference',field='arrangement',evidence='Synthetic form'))['question_id']
+        payload=json.loads(self.get('api/state')[2]);self.assertTrue(any(x['id']==q for x in payload['action_queue']))
+        data=json.dumps(dict(question_id=q,value='Remote',evidence='Synthetic candidate answer',reuse=True))
+        headers={'Content-Type':'application/json','X-CareerPilot-Request':'answer-save','Origin':self.server.origin}
+        self.assertEqual(self.get('api/answer-save','POST',body=data)[0],403)
+        self.assertEqual(self.get('api/answer-save','POST',headers=headers,body=data)[0],202)
+        self.assertEqual(self.ws.read()['backlog']['questions'][q]['status'],'answered')
+        self.assertEqual(self.get('api/answer-save','POST',headers=headers,body=data)[0],400)
+        for action in ['login-session-start','login-session-complete','handoff-sent']:
+            self.assertEqual(self.get('api/'+action,'POST',body='{}')[0],403)
+        for action in ['resume-inspect','freshness-record','submit-begin','handoff-send']:
+            self.assertEqual(self.get('api/'+action,'POST',headers=headers,body='{}')[0],405)
+        self.assertIn(b'Action queue',self.get('')[2])
+
     def test_token_host_and_cross_site_protection(self):
         self.assertEqual(self.get('/api/state', prefix=False)[0], 404)
         self.assertEqual(self.get('api/state', headers={'Host':'external.example'})[0], 403)
@@ -75,6 +92,7 @@ class DashboardTests(unittest.TestCase):
 
     def test_registered_document_download_and_tamper_detection(self):
         jid = self.ws.mutate({'op':'job-add','title':'Synthetic Role','company':'Fixture','description':'Test','source':'Fixture','url':'https://example.invalid/job'})['job_id']
+        self.ws.mutate(dict(op='freshness-record',job_id=jid,open=True,route_valid=True,route_url='https://example.invalid/apply',checked_at=datetime.now(timezone.utc).isoformat(),evidence='Synthetic fixture'))
         source = Path(self.temp.name) / 'resume.html'
         source.write_text('<script>test()</script>', encoding='utf-8')
         self.ws.mutate({'op':'document-add','job_id':jid,'kind':'resume','path':str(source)})

@@ -2,7 +2,7 @@
 
 Your AI companion from job discovery to application.
 
-An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.8.0.
+An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.9.0.
 
 The AI agent you already use supplies the reasoning and tools. The canonical package is **`skills/careerpilot/`**. It includes `SKILL.md`, focused workflow references, a standard-library Python state helper and Codex display metadata. It has no model API dependency and includes no personal profile.
 
@@ -145,3 +145,9 @@ See [Gmail review agent](skills/careerpilot/references/email-review.md). Schedul
 LinkedIn and Indeed are now the primary required sources. Exclude Easy Apply, Indeed Apply / Apply with Indeed / Easily apply, and mixed listings that also offer an on-platform route. Import only recently verified external employer/ATS applications, preserving the original portal link, employer destination, posting date and verification evidence. Both portal outcomes must be recorded before a run can finish. A blocked portal yields partial/failed coverage, not a silent public-feed fallback.
 
 Primary requests run through the host AI/browser after copying the dashboard prompt. The dashboard does not independently scrape these portals or start an agent. Historical saved jobs are retained and are not retroactively verified; recheck their routes before applying. See [primary portal workflow](skills/careerpilot/references/portal-search.md).
+
+## Stage 1: clear the backlog
+
+Action queue groups candidate work by type or exact ATS tenant, with deadline priority, reasons, evidence and effort estimates. Login sittings, batched reusable answers, durable checkpoint history, live resume checks, posting freshness gates and candidate-sent application drafts extend the canonical helper. See [workflow and operation contract](skills/careerpilot/references/backlog.md).
+
+Existing workspaces migrate automatically to schema 2, with a verified backup in their private `backups/` directory first. Close older helpers/dashboards before upgrading. The real workspace was not used for development. Freshness checks are now required before document preparation, form work and submission. Dashboard actions save state; the host agent still performs browser work. No automatic mail sending or background AI runner was added.
