@@ -43,3 +43,7 @@ Existing saved jobs and historical lists are not deleted or retroactively certif
 Official application-type references checked during implementation:
 - https://www.linkedin.com/help/linkedin/answer/a512388/applying-for-jobs-on-linkedin
 - https://www.indeed.com/help/job-seekers/articles/204652920-applying-for-a-job-on-indeed
+
+## Stage 3 integration
+
+See [warm paths](networking.md) for user-file-only connection imports, confidence/evidence, optional boosts, verified hiring-contact cards, separate outreach authorization, cadence and do-not-contact. See [daily workflow](daily.md) for saved profiles, capacity, deduplication, visible quality flags, partial coverage and exact-job digest approval. Existing submission/uncertainty boundaries still apply.

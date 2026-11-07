@@ -2,7 +2,7 @@
 
 Your AI companion from job discovery to application.
 
-An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.10.0.
+An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.11.0.
 
 The AI agent you already use supplies the reasoning and tools. The canonical package is **`skills/careerpilot/`**. It includes `SKILL.md`, focused workflow references, a standard-library Python state helper and Codex display metadata. It has no model API dependency and includes no personal profile.
 
@@ -157,3 +157,11 @@ Existing workspaces migrate automatically to schema 2, with a verified backup in
 Funnel analytics and Weekly review now show application attribution, dated outcomes, response/interview/offer rates by eleven factors, sample sizes, reply timing, stale updates and stated rejection reasons. Statistical proposals require at least 20 complete, sufficiently aged applications in each comparison group, explain correlation only, and need explicit approval. Undo removes future ranking/tailoring guidance. Silence never becomes rejection automatically.
 
 Schema 3 upgrades existing workspaces with a verified private backup first. Close older processes before opening the updated dashboard. The real workspace and existing installed skill copies were not changed during development. See [workflow, definitions and operation contract](skills/careerpilot/references/learning.md).
+
+## Stage 3: referrals and daily jobs
+
+Referrals imports only user-supplied LinkedIn exports/CSVs, explains warm-path evidence and confidence, offers a visible optional ranking boost, and tracks honest drafts, separately authorized messages, replies, referrals and declines. Cadence and do-not-contact checks prevent repeated outreach. Hiring-contact cards retain verification dates/evidence. Networking results join Stage 2 analytics.
+
+Daily digest adds saved search profiles, per-search candidate rules, a shared maximum of five preparations per UTC day, verified-requisition deduplication, visible quality/repeat-application warnings and approve/skip/snooze decisions. Approval reuses the existing reviewed-snapshot authorization flow; no submission happens in the dashboard. LinkedIn/Indeed partial coverage stays explicit.
+
+Ask your tool-enabled AI: **Run my daily top five using saved search profile PROFILE_ID.** The dashboard saves the run and provides a prompt to the host; it does not start an agent. Scheduler setup is explicit and optional. Telegram digest notices require opt-in and existing private settings. See [networking](skills/careerpilot/references/networking.md) and [daily workflow](skills/careerpilot/references/daily.md). Schema 4 migrates with a verified private backup first; stop older processes before use.

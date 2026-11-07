@@ -125,11 +125,14 @@ def rankings(state):
     location = latest.get('location') or state.get('profile', {}).get('location', '')
     values = {j['id']: relevance(j, role, location) for j in state['jobs'].values()}
     from learning import ranking_adjustment
+    from networking import boost
     for jid, value in values.items():
         adjustment = ranking_adjustment(state, state['jobs'][jid])
         value['base_score'] = value['score']
         value['learning_adjustment'] = adjustment
-        value['score'] = min(100, value['score'] + adjustment['boost'])
+        warm = boost(state, state['jobs'][jid])
+        value['warm_path'] = warm
+        value['score'] = min(100, value['score'] + adjustment['boost'] + warm['boost'])
         value['band'] = 'Strong' if value['score'] >= 75 else 'Possible' if value['score'] >= 45 else 'Low'
     ordered = sorted(values, key=lambda key: (-values[key]['score'], state['jobs'][key]['title'].casefold(), key))
     for rank, key in enumerate(ordered, 1):

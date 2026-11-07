@@ -90,6 +90,21 @@ class DashboardTests(unittest.TestCase):
         for route in ['learning-outcome','learning-attribution','learning-touch','email-send']:
             self.assertEqual(self.get('api/'+route,'POST',headers=headers,body='{}')[0],405)
 
+    def test_network_daily_views_and_no_message_send_api(self):
+        payload=json.loads(self.get('api/state')[2]);self.assertEqual(payload['networking']['connections'],[]);self.assertEqual(payload['daily']['config']['capacity'],5)
+        for label in [b'Referrals',b'Daily digest']:self.assertIn(label,self.get('')[2])
+        for action in ['network-config','network-dnc','daily-config','daily-start','daily-decision']:
+            self.assertEqual(self.get('api/'+action,'POST',body='{}')[0],403)
+        headers={'Content-Type':'application/json','X-CareerPilot-Request':'network-config','Origin':self.server.origin}
+        self.assertEqual(self.get('api/network-config','POST',headers=headers,body=json.dumps({'config':{'warm_boost':False}}))[0],202)
+        self.assertFalse(self.ws.read()['networking']['config']['warm_boost'])
+        headers['X-CareerPilot-Request']='daily-profile-save'
+        status,_,raw=self.get('api/daily-profile-save','POST',headers=headers,body=json.dumps({'name':'Synthetic','role':'Analyst','location':'Remote'}));self.assertEqual(status,202)
+        profile=json.loads(raw)['profile_id'];headers['X-CareerPilot-Request']='daily-start'
+        status,_,raw=self.get('api/daily-start','POST',headers=headers,body=json.dumps({'profile_id':profile}));self.assertEqual(status,202);self.assertEqual(json.loads(raw)['status'],'awaiting_agent')
+        for action in ['network-import','network-authorize','network-send-begin','network-sent','daily-notify','submit-begin']:
+            self.assertEqual(self.get('api/'+action,'POST',headers=headers,body='{}')[0],405)
+
     def test_static_assets_are_allowlisted_and_have_csp(self):
         for route in ['', 'app.js', 'style.css']:
             status, headers, body = self.get(route)

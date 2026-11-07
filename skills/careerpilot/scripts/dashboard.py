@@ -2,6 +2,8 @@
 import argparse
 import backlog
 import learning
+import networking
+import daily
 import hashlib
 import json
 import secrets
@@ -27,7 +29,7 @@ def read_state(root):
         if not row:
             raise ValueError('No saved workspace state')
         state = json.loads(row[0])
-        if state.get('schema_version') != 3:
+        if state.get('schema_version') != 4:
             raise ValueError('Unsupported workspace schema')
         return state
     finally:
@@ -104,7 +106,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             state = read_state(server.root)
             if route == 'api/state':
                 return self.respond(200, json.dumps({'state': state, 'workspace': str(server.root),
-                    'analytics': learning.analytics(state), 'weekly': learning.weekly(state), 'action_queue': backlog.queue(state), 'rankings': rankings(state), 'active_search': server.search.active}, ensure_ascii=False), 'application/json; charset=utf-8')
+                    'networking': networking.view(state), 'daily': daily.view(state), 'analytics': learning.analytics(state), 'weekly': learning.weekly(state), 'action_queue': backlog.queue(state), 'rankings': rankings(state), 'active_search': server.search.active}, ensure_ascii=False), 'application/json; charset=utf-8')
             if route == 'api/export':
                 return self.respond(200, json.dumps(state, indent=2, ensure_ascii=False), 'application/json; charset=utf-8', 'job-workspace.json')
             query = parse_qs(parsed.query)
@@ -128,7 +130,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         server = self.server
         action = self.path.removeprefix(f'/{server.token}/api/')
-        if self.path not in {f'/{server.token}/api/{a}' for a in ('search','portal-search','settings','telegram-test','telegram-chats','assistance-retry','assistance-resume','email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo')}:
+        if self.path not in {f'/{server.token}/api/{a}' for a in ('search','portal-search','settings','telegram-test','telegram-chats','assistance-retry','assistance-resume','email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo','network-config','network-dnc','daily-config','daily-profile-save','daily-start','daily-decision')}:
             return self.respond(405, 'This action is not available from this dashboard.')
         if (self.headers.get('Host') != urlsplit(server.origin).netloc
                 or self.headers.get('Origin') != server.origin
@@ -149,7 +151,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 raise ValueError('Request must be an object.')
             if action == 'portal-search':
                 result = Workspace(server.root).mutate(dict(query, op='portal-search-start'))
-            elif action in {'email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo'}:
+            elif action in {'email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo','network-config','network-dnc','daily-config','daily-profile-save','daily-start','daily-decision'}:
                 result = Workspace(server.root).mutate(dict(query, op=action))
             elif action == 'settings':
                 result = Settings(server.root).save(query)

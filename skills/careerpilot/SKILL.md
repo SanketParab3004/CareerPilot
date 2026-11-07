@@ -2,7 +2,7 @@
 name: careerpilot
 description: Manage a candidate's job search from a fresh profile through job discovery, fit ranking, tailored resumes, recruiting-contact research, browser-assisted applications, and outcome tracking. Use when the user wants to find or apply for jobs, prepare application materials, or resume an application queue.
 metadata:
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 # CareerPilot
@@ -13,7 +13,7 @@ Act as the user's job-search assistant through the host's existing tools. This s
 
 Resolve `scripts/toolkit.py` relative to this skill directory. Use Python 3.10+ and an explicit absolute `--workspace` for every call. Default to `<user's task directory>/job-search-workspace` if no location was chosen; keep candidate data outside the installed skill. Do not import the author's or another toolkit's profile.
 
-Run `status` first when the workspace exists. Schema-1/2 workspaces migrate with a private backup on first use; stop older helpers first. Read [backlog and recovery](references/backlog.md) before processing blocked or interrupted work. On each new host session, reconcile in-flight jobs before continuing; never replay an uncertain submission. Run `init` for a new workspace. These commands require no AI credentials. Use [state commands](references/state.md) when reading or changing records. All persistent changes go through the helper; never hand-edit its database.
+Run `status` first when the workspace exists. Schema-1/2/3 workspaces migrate with a private backup on first use; stop older helpers first. Read [backlog and recovery](references/backlog.md) before processing blocked or interrupted work. On each new host session, reconcile in-flight jobs before continuing; never replay an uncertain submission. Run `init` for a new workspace. These commands require no AI credentials. Use [state commands](references/state.md) when reading or changing records. All persistent changes go through the helper; never hand-edit its database.
 
 For a new candidate, offer **Import resume / LinkedIn profile or export / Indeed profile or export / Answer questions**. If the user already supplied a file or chose a path, proceed with it. Read [profile import](references/profile-import.md) for files, exports, or authorized account access. Collect only missing target roles, locations/work arrangements and relevant facts afterward. Preview proposed facts and conflicts before applying an imported profile; keep an existing profile until the user confirms the changes. Store unknown answers as unknown, especially work authorization, dates, salary expectations, and eligibility. Never infer an answer from a name, nationality, location, or demographic characteristic.
 
@@ -28,6 +28,8 @@ For a new candidate, offer **Import resume / LinkedIn profile or export / Indeed
 | Save account details, configure phone alerts | [Accounts and assistance](references/accounts-and-assistance.md) | Encrypted site-specific credentials, signup defaults, Telegram alerts |
 | Clear blockers, batch answers, login sittings, recover forms | [Backlog and recovery](references/backlog.md) | Prioritized action queue, safe live inspection, deadlines and personal-send handoffs |
 | Fill, apply, resume queue | [Browser applications](references/browser-applications.md) | Filled forms, paused exceptions, review or confirmed submission |
+| Import connections, find referrals or manage follow-ups | [Warm paths](references/networking.md) | File-only connections, evidence/confidence, optional boosts, separately authorized referral sequences |
+| Run daily top five, saved searches or digest decisions | [Daily workflow](references/daily.md) | Capacity-limited host workflow, visible quality flags, partial coverage and exact-job approval |
 | Find hiring team or draft outreach | [Recruiting contacts](references/contacts.md) | Sourced contact cards and unsent drafts |
 | Check company emails, update application statuses | [Gmail review agent](references/email-review.md) | Read-only mailbox review, matched evidence, review queue and application outcomes |
 | Learn from outcomes, review funnel or weekly progress | [Results and learning](references/learning.md) | Attribution, honest funnel rates, approval/undo, dated results and follow-up hygiene |

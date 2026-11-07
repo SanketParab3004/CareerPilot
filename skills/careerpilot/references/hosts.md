@@ -32,3 +32,7 @@ Official installation references checked during development:
 - https://code.claude.com/docs/en/skills
 
 The previous dashboard is archived under `legacy/dashboard` in the source repository. It uses a separate database and is not the skill's interface. The helper's generated HTML report reads the skill's actual workspace.
+
+## Optional daily host scheduler
+
+Use only the scheduler actually supported by the selected host. Ask for cadence/timezone, exact workspace, saved search profile, tool access and digest delivery preference when the user explicitly requests scheduling. Configure it through that host's documented tools after approval; do not add a schedule during feature installation. The scheduled task must invoke the complete workflow in daily.md, not only daily-start. A text-only model or a scheduler without permitted browser/document tools cannot complete it; report the missing capability. Without a scheduler, one natural-language request to run the saved daily profile executes the same bounded workflow in the current host session. No host-specific scheduler client is embedded in the portable core.

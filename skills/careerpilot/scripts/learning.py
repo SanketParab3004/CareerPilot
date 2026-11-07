@@ -205,7 +205,8 @@ def analytics(state, as_of=None):
             reason=f"{high[2]['interviews']}/{high[2]['n']} interviews versus {low[2]['interviews']}/{low[2]['n']} in {field} cohorts. Trial only; no predicted improvement.",
             evidence={'preferred':high[2],'comparison':low[2],'job_ids':[a['job_id'] for a in high[1]+low[1]],
                       'minimum_sample':minimum,'observation_days':config['observation_days']}, caution=CAUTION))
-    return dict(overall=measure(apps,minimum,as_of), factors=factors, suggestions=suggestions, caution=CAUTION,
+    from networking import summary as networking_summary
+    return dict(networking=networking_summary(state), overall=measure(apps,minimum,as_of), factors=factors, suggestions=suggestions, caution=CAUTION,
         config=copy.deepcopy(config), eligible_learning_n=len(eligible), unconfirmed_n=len(all_apps)-len(apps),
         denominator='Confirmed applications; acknowledgements excluded from substantive response rate. Each rate uses applications, not the previous funnel step.',
         observation_note='Recent applications have less time to receive replies. Undated/backfilled/incomplete records are excluded from recommendations, not descriptive totals. Referral/outreach factors include dated post-application activity and may follow a response; no causal interpretation is valid.')

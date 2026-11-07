@@ -7,3 +7,7 @@ Store a contact using `contact-add` with name, role, employer, professional prof
 Only add a work email when it is published in a source you actually read. Record `email_source_url` and the published evidence. Do not invent addresses from naming patterns, retrieve private personal details, or imply deliverability is verified just because an address is published. If none is available, give the professional profile or official recruiting contact page.
 
 Draft concise, role-specific outreach with the user's actual relevant experience, the role/requisition and a clear request. Save the draft with `outreach-draft`. Do not imply an existing relationship. Sending is a separate action requiring explicit authorization for the recipient/channel/content under the host's rules. Application submission permissions never authorize outreach. On request to send, use the actual connector/browser, honor site access rules, and record the result in a note only after observing it.
+
+## Stage 3 integration
+
+See [warm paths](networking.md) for user-file-only connection imports, confidence/evidence, optional boosts, verified hiring-contact cards, separate outreach authorization, cadence and do-not-contact. See [daily workflow](daily.md) for saved profiles, capacity, deduplication, visible quality flags, partial coverage and exact-job digest approval. Existing submission/uncertainty boundaries still apply.

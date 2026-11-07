@@ -76,3 +76,7 @@ Clear candidate blockers before increasing application volume: canonical priorit
 ## Stage 2 — learn from results (0.10.0)
 
 Adds application-time attribution snapshots, dated outcome history, eleven-factor descriptive funnel analytics, explicit sample/observation thresholds, candidate-approved bounded ranking and host-consumed tailoring experiments with undo, rolling weekly review, configurable silence hygiene, and employer-stated rejection gaps. Dashboard views use canonical helper state. No model API, messaging permission, live site access, scheduler or causal-performance claim is introduced.
+
+## Stage 3 — referrals and daily jobs (0.11.0)
+
+Adds user-file-only connection imports, evidence/confidence-based warm paths, optional visible ranking boosts, separately authorized referral messages with cadence/DNC and outcome history, extended verified contact cards, networking analytics, saved daily search profiles, bounded preparation capacity, explicit daily digests, exact-job application approval, stronger deduplication and non-hiding quality flags. Search, documents, messaging and optional scheduler execution remain host workflows. No schedule is silently installed.

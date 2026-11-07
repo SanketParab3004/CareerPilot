@@ -58,3 +58,7 @@ Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-t
 ## Stage 2 results integration
 
 Read [results and learning](learning.md) for schema-3 attribution, dated outcome history, sample-aware funnel rates, weekly review, stale-update settings, rejection reasons and approved adjustments. Use `analytics`, `weekly` and `guidance`; only the helper changes persistent state. Applied Gmail outcomes feed history, while pending/dismissed mail does not. Before new document preparation, consult approved tailoring guidance and record the actual approach with evidence. Statistical proposals require candidate approval and support undo; they do not authorize application submission or outreach.
+
+## Stage 3 integration
+
+See [warm paths](networking.md) for user-file-only connection imports, confidence/evidence, optional boosts, verified hiring-contact cards, separate outreach authorization, cadence and do-not-contact. See [daily workflow](daily.md) for saved profiles, capacity, deduplication, visible quality flags, partial coverage and exact-job digest approval. Existing submission/uncertainty boundaries still apply.

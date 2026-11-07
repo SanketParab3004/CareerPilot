@@ -4,6 +4,8 @@ import argparse
 import copy
 import backlog
 import learning
+import networking
+import daily
 import hashlib
 import html
 import json
@@ -15,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-VERSION = '0.10.0'
+VERSION = '0.11.0'
 TERMINAL = {'Submitted', 'Interview', 'Rejected', 'Offer', 'Withdrawn', 'Expired'}
 ACTIVE = {'Selected', 'Preparing', 'Filling', 'Ready for review'}
 
@@ -49,7 +51,7 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def fresh():
-    return {'schema_version': 3, 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
+    return {'schema_version': 4, 'networking': networking.empty(), 'daily': daily.empty(), 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
 
 def summary(state):
     counts = {}
@@ -85,10 +87,10 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            if state.get('schema_version') == 3:
+            if state.get('schema_version') == 4:
                 db.rollback()
-                return {'schema_version': 3, 'migrated': False}
-            require(state.get('schema_version') in {1, 2}, 'Unsupported workspace schema')
+                return {'schema_version': 4, 'migrated': False}
+            require(state.get('schema_version') in {1, 2, 3}, 'Unsupported workspace schema')
             old_version = state['schema_version']
             folder = self.root / 'backups'
             folder.mkdir(exist_ok=True)
@@ -106,11 +108,14 @@ class Workspace:
             if old_version == 1:
                 backlog.upgrade(state)
                 state.setdefault('migrations', []).append({'version':2, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
-            learning.upgrade(state)
-            state.setdefault('migrations', []).append({'version':3, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            if old_version <= 2:
+                learning.upgrade(state)
+                state.setdefault('migrations', []).append({'version':3, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            daily.upgrade(state)
+            state.setdefault('migrations', []).append({'version':4, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
             db.commit()
-            return {'schema_version':3, 'migrated':True, 'backup':str(backup)}
+            return {'schema_version':4, 'migrated':True, 'backup':str(backup)}
         except Exception:
             db.rollback()
             raise
@@ -123,7 +128,7 @@ class Workspace:
         db = sqlite3.connect(self.db_path)
         try:
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 3, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 4, 'Unsupported workspace schema')
             return state
         finally:
             db.close()
@@ -136,12 +141,14 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 3, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 4, 'Unsupported workspace schema')
             result = self.apply(state, request)
             learning.observe(state, request)
             state['events'].append({'at': utc(), 'op': request['op'], 'job_id': request.get('job_id'), 'result': result})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
             db.commit()
+            if request.get('op') == 'daily-notify':
+                result['delivery'] = daily.deliver_digest(self.root, result['run_id'], result)['delivery']
             if request.get('op') == 'pause' and result.get('request_id'):
                 from private_settings import deliver
                 try:
@@ -166,6 +173,10 @@ class Workspace:
 
     def apply(self, state, data):
         op = text(data.get('op'), 'op')
+        if op in networking.OPS:
+            return networking.apply(self, state, data)
+        if op in daily.OPS:
+            return daily.apply(self, state, data)
         if op in learning.OPS:
             return learning.apply(state, data)
         if op in backlog.OPS:
@@ -276,6 +287,12 @@ class Workspace:
         if op == 'job-add':
             source_url = url(data.get('url'))
             key = url_key(source_url)
+            match = daily.duplicate(state, data)
+            if match and match['url_key'] != key:
+                observation = {'url':source_url, 'title':data.get('title'), 'source':data.get('source'), 'evidence':data['identity']['evidence']}
+                if observation not in match.setdefault('duplicate_observations', []):
+                    match['duplicate_observations'].append(observation)
+                return {'job_id':match['id'], 'duplicate':True, 'reason':'Same verified employer requisition'}
             for job in state['jobs'].values():
                 if job['url_key'] == key:
                     return {'job_id': job['id'], 'duplicate': True}
@@ -285,6 +302,8 @@ class Workspace:
                    'source': text(data.get('source'), 'source'), 'location': text(data.get('location', ''), 'location', True),
                    'retrieved_at': utc(), 'status': 'Saved', 'documents': [], 'contacts': [], 'notes': [],
                    'outreach': [], 'attempts': [], 'created_at': utc(), 'updated_at': utc()}
+            if data.get('identity'):
+                job['identity'] = daily.identity(data['identity'])
             state['jobs'][jid] = job
             if data.get('closing_at') is not None:
                 self.apply(state, dict(op='deadline-set', job_id=jid, closing_at=data['closing_at'], evidence=data.get('closing_evidence')))
@@ -448,7 +467,7 @@ class Workspace:
                 require(re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', contact['email']), 'Invalid email')
                 url(contact.get('email_source_url'))
                 text(contact.get('email_evidence'), 'published email evidence')
-            job['contacts'].append(dict(contact, checked_at=utc()))
+            job['contacts'].append(dict(contact, id=uuid.uuid4().hex[:12], checked_at=utc(), last_verified_at=learning.date(contact.get('verified_at', utc())), verification_evidence=text(contact.get('verification_evidence', contact['relevance']), 'contact verification evidence')))
         elif op == 'outreach-draft':
             job['outreach'].append({'at': utc(), 'recipient': text(data.get('recipient'), 'recipient'),
                                    'channel': text(data.get('channel'), 'channel'), 'text': text(data.get('text'), 'draft'), 'status': 'Draft only'})
@@ -488,7 +507,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance']:
+    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests']:
         sub.add_parser(name)
     dashboard = sub.add_parser('dashboard', help='Serve the live local read-only dashboard')
     dashboard.add_argument('--port', type=int, default=8765)
@@ -519,7 +538,11 @@ def main():
             result = ws.report()
         else:
             state = ws.read()
-            if args.command == 'analytics':
+            if args.command == 'referrals':
+                result = networking.view(state)
+            elif args.command == 'digests':
+                result = daily.view(state)
+            elif args.command == 'analytics':
                 result = learning.analytics(state)
             elif args.command == 'weekly':
                 result = learning.weekly(state)

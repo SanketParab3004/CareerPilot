@@ -119,3 +119,28 @@ Stop older processes first. Unknown historical dates are preserved, not imputed.
 New statistical adjustments are pending until candidate approval and reversible.
 Package command: python tools/package_skill.py. Installed skill copies are not
 silently overwritten; the real job-search-workspace remains untouched.
+
+## Stage 3 / release 0.11.0 validation
+
+November 6, 2026: 126 synthetic Python tests passed with zero failures or skips.
+Coverage includes file-only CSV/ZIP imports, credential-header rejection, evidence and
+confidence, optional ranking boosts, verified recipients, message-scoped authorization,
+cadence and do-not-contact boundaries, uncertain sends and explicit resolution,
+networking outcomes, saved searches, global daily capacity, partial portal coverage,
+document-byte verification, exact digest application authorization, deduplication,
+visible quality warnings and schema-3 backup/failure/retry migration. Earlier schema
+migrations remain covered. Tests never access live services or the real workspace.
+
+JavaScript syntax passed node --check. Synthetic localhost browser navigation verified
+Referrals, Daily digest, Funnel analytics and Weekly review, including blocked Indeed
+coverage, confidence/evidence and small-sample labels, with no browser console errors.
+Final approval-button gating and score breakdown changes have syntax/automated coverage;
+mobile layout and live host workflows remain unverified. No live search, message,
+application or scheduler was executed. Telegram delivery tests use mocks.
+
+Daily search, material preparation and browser/message execution remain host workflows;
+the helper persists their evidence and enforces gates. No schedule is installed.
+Quality flags are heuristics, not proof, and networking matches need verification.
+Schema 4 automatically backs up and migrates older workspaces on first helper use;
+stop older processes first. No manual data rewrite is required. Refresh installed
+skill copies through the normal installer. Package: python tools/package_skill.py.
