@@ -75,6 +75,21 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(self.get('api/state', headers={'Sec-Fetch-Site':'cross-site'})[0], 403)
         self.assertEqual(self.get('api/state', headers={'Origin':self.server.origin})[0], 200)
 
+    def test_learning_views_preferences_and_approval_boundary(self):
+        payload=json.loads(self.get('api/state')[2]);self.assertEqual(payload['analytics']['overall']['n'],0)
+        self.assertEqual(len(payload['weekly']['next_actions']),3)
+        for label in [b'Funnel analytics',b'Weekly review']:self.assertIn(label,self.get('')[2])
+        for action in ['learning-config','learning-propose','learning-approve','learning-undo']:
+            self.assertEqual(self.get('api/'+action,'POST',body='{}')[0],403)
+        headers={'Content-Type':'application/json','X-CareerPilot-Request':'learning-config','Origin':self.server.origin}
+        self.assertEqual(self.get('api/learning-config','POST',headers=headers,body=json.dumps({'config':{'stale_days':21},'evidence':'Synthetic candidate preference'}))[0],202)
+        self.assertEqual(self.ws.read()['learning']['config']['stale_days'],21)
+        self.assertEqual(self.get('api/learning-config','POST',headers=headers,body=json.dumps({'config':{'minimum_sample':1},'evidence':'Synthetic'}))[0],400)
+        headers['X-CareerPilot-Request']='learning-propose'
+        self.assertEqual(json.loads(self.get('api/learning-propose','POST',headers=headers,body='{}')[2])['proposal_ids'],[])
+        for route in ['learning-outcome','learning-attribution','learning-touch','email-send']:
+            self.assertEqual(self.get('api/'+route,'POST',headers=headers,body='{}')[0],405)
+
     def test_static_assets_are_allowlisted_and_have_csp(self):
         for route in ['', 'app.js', 'style.css']:
             status, headers, body = self.get(route)

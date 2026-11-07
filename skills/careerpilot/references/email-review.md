@@ -55,3 +55,7 @@ The dashboard can apply a pending proposal to a selected saved job with a review
 ## Completion
 
 Report the actual check scope, counts, applied outcomes, uncertain matches and errors. The dashboard shows application statuses, source email links, evidence, review controls, and dated check history. It does not send Telegram alerts for email outcomes in this version; Telegram remains the manual-assistance channel. Periodic checking requires a separately configured host scheduler with mailbox access and explicit user-requested cadence. Do not create a schedule from a request to build this feature.
+
+## Stage 2 results integration
+
+Read [results and learning](learning.md) for schema-3 attribution, dated outcome history, sample-aware funnel rates, weekly review, stale-update settings, rejection reasons and approved adjustments. Use `analytics`, `weekly` and `guidance`; only the helper changes persistent state. Applied Gmail outcomes feed history, while pending/dismissed mail does not. Before new document preparation, consult approved tailoring guidance and record the actual approach with evidence. Statistical proposals require candidate approval and support undo; they do not authorize application submission or outreach.

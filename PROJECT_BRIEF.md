@@ -72,3 +72,7 @@ Required LinkedIn/Indeed primary search requests; external employer/ATS route ve
 ## Stage 1 — interview-oriented workflow foundations (0.9.0)
 
 Clear candidate blockers before increasing application volume: canonical prioritized actions, exact-tenant login batches, structured blockers preserving original text, context-scoped reusable answers, append-only checkpoints with live recovery, closing dates and freshness gates, candidate-only application handoffs, and the dashboard Action queue. Core stays standard-library and host-independent. No later-stage features are included.
+
+## Stage 2 — learn from results (0.10.0)
+
+Adds application-time attribution snapshots, dated outcome history, eleven-factor descriptive funnel analytics, explicit sample/observation thresholds, candidate-approved bounded ranking and host-consumed tailoring experiments with undo, rolling weekly review, configurable silence hygiene, and employer-stated rejection gaps. Dashboard views use canonical helper state. No model API, messaging permission, live site access, scheduler or causal-performance claim is introduced.

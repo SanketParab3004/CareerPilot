@@ -3,6 +3,7 @@
 import argparse
 import copy
 import backlog
+import learning
 import hashlib
 import html
 import json
@@ -14,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-VERSION = '0.9.0'
+VERSION = '0.10.0'
 TERMINAL = {'Submitted', 'Interview', 'Rejected', 'Offer', 'Withdrawn', 'Expired'}
 ACTIVE = {'Selected', 'Preparing', 'Filling', 'Ready for review'}
 
@@ -48,7 +49,7 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def fresh():
-    return {'schema_version': 2, 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
+    return {'schema_version': 3, 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
 
 def summary(state):
     counts = {}
@@ -84,13 +85,14 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            if state.get('schema_version') == 2:
+            if state.get('schema_version') == 3:
                 db.rollback()
-                return {'schema_version': 2, 'migrated': False}
-            require(state.get('schema_version') == 1, 'Unsupported workspace schema')
+                return {'schema_version': 3, 'migrated': False}
+            require(state.get('schema_version') in {1, 2}, 'Unsupported workspace schema')
+            old_version = state['schema_version']
             folder = self.root / 'backups'
             folder.mkdir(exist_ok=True)
-            backup = folder / ('schema-1-' + uuid.uuid4().hex + '.sqlite3')
+            backup = folder / ('schema-' + str(old_version) + '-' + uuid.uuid4().hex + '.sqlite3')
             # A separate reader can copy the pre-migration snapshot while this
             # reserved write transaction prevents concurrent state changes.
             source = sqlite3.connect(self.db_path.as_uri() + '?mode=ro', uri=True)
@@ -101,11 +103,14 @@ class Workspace:
             finally:
                 target.close()
                 source.close()
-            backlog.upgrade(state)
-            state.setdefault('migrations', []).append({'version':2, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            if old_version == 1:
+                backlog.upgrade(state)
+                state.setdefault('migrations', []).append({'version':2, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            learning.upgrade(state)
+            state.setdefault('migrations', []).append({'version':3, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
             db.commit()
-            return {'schema_version':2, 'migrated':True, 'backup':str(backup)}
+            return {'schema_version':3, 'migrated':True, 'backup':str(backup)}
         except Exception:
             db.rollback()
             raise
@@ -118,7 +123,7 @@ class Workspace:
         db = sqlite3.connect(self.db_path)
         try:
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 2, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 3, 'Unsupported workspace schema')
             return state
         finally:
             db.close()
@@ -131,8 +136,9 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 2, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 3, 'Unsupported workspace schema')
             result = self.apply(state, request)
+            learning.observe(state, request)
             state['events'].append({'at': utc(), 'op': request['op'], 'job_id': request.get('job_id'), 'result': result})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
             db.commit()
@@ -160,6 +166,8 @@ class Workspace:
 
     def apply(self, state, data):
         op = text(data.get('op'), 'op')
+        if op in learning.OPS:
+            return learning.apply(state, data)
         if op in backlog.OPS:
             return backlog.apply(self, state, data)
         if op.startswith('portal-'):
@@ -480,7 +488,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue']:
+    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance']:
         sub.add_parser(name)
     dashboard = sub.add_parser('dashboard', help='Serve the live local read-only dashboard')
     dashboard.add_argument('--port', type=int, default=8765)
@@ -511,7 +519,13 @@ def main():
             result = ws.report()
         else:
             state = ws.read()
-            if args.command == 'queue':
+            if args.command == 'analytics':
+                result = learning.analytics(state)
+            elif args.command == 'weekly':
+                result = learning.weekly(state)
+            elif args.command == 'guidance':
+                result = {'tailoring': learning.guidance(state), 'approved_adjustments': learning.active(state)}
+            elif args.command == 'queue':
                 result = {'items': backlog.queue(state)}
             elif args.command == 'status':
                 result = summary(state)

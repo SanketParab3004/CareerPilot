@@ -77,3 +77,7 @@ Profile imports are described in [profile import](profile-import.md). `show` inc
 ## Schema 2 backlog extension
 
 See [backlog and recovery](backlog.md) for all new JSON operations and migration guarantees. `queue` returns the shared prioritized view; `next` includes it and excludes jobs needing freshness or recovery. `migrate` explicitly performs the automatic backup-first upgrade. Dashboard startup migrates through the helper before serving read-only state; subsequent GET requests do not mutate state. Start, document registration, checkpoint, ready and submit-begin require fresh live posting/route evidence. Resume records a candidate resolution but cannot bypass live inspection.
+
+## Stage 2 results integration
+
+Read [results and learning](learning.md) for schema-3 attribution, dated outcome history, sample-aware funnel rates, weekly review, stale-update settings, rejection reasons and approved adjustments. Use `analytics`, `weekly` and `guidance`; only the helper changes persistent state. Applied Gmail outcomes feed history, while pending/dismissed mail does not. Before new document preparation, consult approved tailoring guidance and record the actual approach with evidence. Statistical proposals require candidate approval and support undo; they do not authorize application submission or outreach.

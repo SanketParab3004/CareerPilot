@@ -2,7 +2,7 @@
 
 Your AI companion from job discovery to application.
 
-An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.9.0.
+An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.10.0.
 
 The AI agent you already use supplies the reasoning and tools. The canonical package is **`skills/careerpilot/`**. It includes `SKILL.md`, focused workflow references, a standard-library Python state helper and Codex display metadata. It has no model API dependency and includes no personal profile.
 
@@ -151,3 +151,9 @@ Primary requests run through the host AI/browser after copying the dashboard pro
 Action queue groups candidate work by type or exact ATS tenant, with deadline priority, reasons, evidence and effort estimates. Login sittings, batched reusable answers, durable checkpoint history, live resume checks, posting freshness gates and candidate-sent application drafts extend the canonical helper. See [workflow and operation contract](skills/careerpilot/references/backlog.md).
 
 Existing workspaces migrate automatically to schema 2, with a verified backup in their private `backups/` directory first. Close older helpers/dashboards before upgrading. The real workspace was not used for development. Freshness checks are now required before document preparation, form work and submission. Dashboard actions save state; the host agent still performs browser work. No automatic mail sending or background AI runner was added.
+
+## Stage 2: learn from results
+
+Funnel analytics and Weekly review now show application attribution, dated outcomes, response/interview/offer rates by eleven factors, sample sizes, reply timing, stale updates and stated rejection reasons. Statistical proposals require at least 20 complete, sufficiently aged applications in each comparison group, explain correlation only, and need explicit approval. Undo removes future ranking/tailoring guidance. Silence never becomes rejection automatically.
+
+Schema 3 upgrades existing workspaces with a verified private backup first. Close older processes before opening the updated dashboard. The real workspace and existing installed skill copies were not changed during development. See [workflow, definitions and operation contract](skills/careerpilot/references/learning.md).

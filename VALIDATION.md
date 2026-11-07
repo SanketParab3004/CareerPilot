@@ -96,3 +96,26 @@ Schema 2 automatically backs up/migrates on first use; stop old processes first.
 Read references/backlog.md for new freshness and recovery gates. Existing installed
 skill copies are not silently overwritten; update them through the normal installer
 workflow. No model client or third-party core dependency was added.
+
+## Stage 2 / release 0.10.0 validation
+
+November 6, 2026: 105 synthetic Python tests passed with zero failures or skips.
+Coverage includes frozen source/fit/document attribution, unknown and backfilled data,
+confirmed versus uncertain submission denominators, explicit dated outcomes, Gmail
+pending/applied deduplication, eleven-factor rates and reply medians, minimum cohort
+size and age gates, approval/stale proposal/undo boundaries, dated outreach without
+permission, silence thresholds, stated rejection recurrence, weekly actions, protected
+dashboard settings and schema-2 temporary-copy migration/backup/rollback/idempotence.
+Schema-1 migration remains covered by the Stage 1 suite. No real workspace or live
+employer, job board, Gmail or Telegram service was accessed by the tests.
+
+JavaScript syntax passed node --check. Analytics and weekly APIs and static navigation
+were exercised through localhost HTTP tests. Live browser visual layout, real Gmail
+classification, and host application of approved tailoring guidance remain unverified.
+These tests establish state/workflow behavior, not improvement in interview outcomes.
+
+Schema 3 automatically backs up and migrates schema 1/2 on first helper/dashboard use.
+Stop older processes first. Unknown historical dates are preserved, not imputed.
+New statistical adjustments are pending until candidate approval and reversible.
+Package command: python tools/package_skill.py. Installed skill copies are not
+silently overwritten; the real job-search-workspace remains untouched.

@@ -11,3 +11,7 @@ Use `outcome` to record Interview, Rejected, Offer, Withdrawn, or Expired, with 
 For interviews, read the exact posting, submitted document versions, profile and recorded earlier-round feedback. Research only what is relevant and source company claims. Build questions and honest examples from the candidate's actual experience. Mark hypothetical answers and practice scenarios as such. Save preparation notes through `note` and link any generated files in the workspace.
 
 For follow-ups, use elapsed time and the user's preference to suggest a next step. Draft rather than send unless explicitly authorized. Never claim a reply, interview invite or rejection that was not observed or reported by the user.
+
+## Stage 2 results integration
+
+Read [results and learning](learning.md) for schema-3 attribution, dated outcome history, sample-aware funnel rates, weekly review, stale-update settings, rejection reasons and approved adjustments. Use `analytics`, `weekly` and `guidance`; only the helper changes persistent state. Applied Gmail outcomes feed history, while pending/dismissed mail does not. Before new document preparation, consult approved tailoring guidance and record the actual approach with evidence. Statistical proposals require candidate approval and support undo; they do not authorize application submission or outreach.
