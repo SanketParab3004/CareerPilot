@@ -11,7 +11,7 @@ OPS = {'learning-attribution', 'learning-config', 'learning-outcome', 'learning-
        'learning-propose', 'learning-approve', 'learning-undo', 'learning-touch'}
 CONTEXT = {'role_family', 'seniority', 'tailoring_approach', 'ats', 'referral_used', 'outreach_used'}
 FACTORS = ('source', 'role_family', 'seniority', 'fit_score', 'document_versions',
-           'tailoring_approach', 'posting_age_days', 'time_to_apply_minutes', 'ats', 'referral_used', 'outreach_used')
+           'tailoring_approach', 'posting_age_days', 'time_to_apply_minutes', 'ats', 'referral_used', 'outreach_used', 'positioning_variant')
 REPLIES = {'Under review', 'Assessment', 'Interview', 'Rejected', 'Offer'}
 OUTCOMES = REPLIES | {'Application received', 'Withdrawn', 'Expired'}
 FINAL = {'Rejected', 'Offer', 'Withdrawn', 'Expired'}
@@ -56,6 +56,7 @@ def snapshot(job, applied_at, backfilled=False, documents=None):
     published, applied, started = dt(job.get('discovery', {}).get('published_at')), dt(applied_at), dt(job.get('preparation_started_at'))
     values['posting_age_days'] = (applied-published).total_seconds()/86400 if applied and published and applied >= published else None
     values['time_to_apply_minutes'] = (applied-started).total_seconds()/60 if applied and started and applied >= started else None
+    values['positioning_variant'] = job.get('positioning_variant_attribution', 'None recorded')
     missing = [k for k in FACTORS if values.get(k) is None]
     if not applied: missing.append('applied_at')
     return dict(values, applied_at=applied_at, backfilled=backfilled, incomplete=backfilled or bool(missing), missing=missing,
@@ -113,6 +114,9 @@ def observe(state, request):
         record(state,jid)
         if op in {'start','document-add'}:
             job.setdefault('preparation_started_at', now().isoformat())
+        if op in {'submit-begin','manual-submitted','handoff-sent'}:
+            import document_quality
+            job['positioning_variant_attribution'] = document_quality.variants_for(state, job)
         if op == 'submit-begin':
             job['attribution_attempt'] = snapshot(job, job['attempts'][-1]['at'])
         if op in {'submitted','manual-submitted','handoff-sent'} or op == 'resolve' and request.get('result') == 'submitted':

@@ -43,3 +43,16 @@ For login/signup, read [Accounts and assistance](accounts-and-assistance.md). Re
 ## Stage 1 backlog integration
 
 Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-tenant login sessions, batched candidate answers, recovery gates, deadline/freshness records and candidate-sent application drafts. Save a live `freshness-record` before tailoring or form work. `resume` now schedules live inspection; it does not establish that the form is safe. The dashboard Action queue groups by type or site, accepts candidate answers and login completion, shows handoff drafts, and records candidate-reported sending. It never executes application submissions or sends email.
+
+
+## Stage 4 quality gates
+
+Schema 5 adds [document verification and review](document-quality.md) and
+[observed application safeguards](application-quality.md). These supersede the older
+minimal document/checkpoint/submission examples above. Registering a file is draft-only;
+verify claims, coverage, parsing and critique, obtain document approval, then check
+attachment for the exact job. Checkpoint answers/uploads require page confirmation.
+A fresh passed pre-submit-check is required before submit-begin; submitted/resolved
+confirmation references structured evidence. [Site playbooks](site-playbooks.md) guide
+bounded recovery without claiming live compatibility. Application quality in the
+dashboard shows private history and failures; it has no new execution endpoints.

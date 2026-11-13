@@ -80,3 +80,8 @@ Adds application-time attribution snapshots, dated outcome history, eleven-facto
 ## Stage 3 — referrals and daily jobs (0.11.0)
 
 Adds user-file-only connection imports, evidence/confidence-based warm paths, optional visible ranking boosts, separately authorized referral messages with cadence/DNC and outcome history, extended verified contact cards, networking analytics, saved daily search profiles, bounded preparation capacity, explicit daily digests, exact-job application approval, stronger deduplication and non-hiding quality flags. Search, documents, messaging and optional scheduler execution remain host workflows. No schedule is silently installed.
+
+
+## Stage 4 — better applications and documents (0.12.0)
+
+Adds portable ATS playbooks, reviewed normalized field memory, failure/recovery history, confirmed field/upload observations, fresh pre-submit comparison and structured receipts. Documents gain claim provenance, requirement coverage, honest keywords, actual-file parse checks, candidate rules/approval, exact-job reuse exceptions, version diffs, truthful positioning variants and recruiter critique. Dashboard views read canonical state; schema 5 preserves existing data with backup-first migration. Semantic/visual judgment and browser execution remain evidenced host responsibilities.

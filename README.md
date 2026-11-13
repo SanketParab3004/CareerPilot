@@ -2,7 +2,7 @@
 
 Your AI companion from job discovery to application.
 
-An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.11.0.
+An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.12.0.
 
 The AI agent you already use supplies the reasoning and tools. The canonical package is **`skills/careerpilot/`**. It includes `SKILL.md`, focused workflow references, a standard-library Python state helper and Codex display metadata. It has no model API dependency and includes no personal profile.
 
@@ -165,3 +165,12 @@ Referrals imports only user-supplied LinkedIn exports/CSVs, explains warm-path e
 Daily digest adds saved search profiles, per-search candidate rules, a shared maximum of five preparations per UTC day, verified-requisition deduplication, visible quality/repeat-application warnings and approve/skip/snooze decisions. Approval reuses the existing reviewed-snapshot authorization flow; no submission happens in the dashboard. LinkedIn/Indeed partial coverage stays explicit.
 
 Ask your tool-enabled AI: **Run my daily top five using saved search profile PROFILE_ID.** The dashboard saves the run and provides a prompt to the host; it does not start an agent. Scheduler setup is explicit and optional. Telegram digest notices require opt-in and existing private settings. See [networking](skills/careerpilot/references/networking.md) and [daily workflow](skills/careerpilot/references/daily.md). Schema 4 migrates with a verified private backup first; stop older processes before use.
+
+
+## Stage 4: better applications and documents
+
+Application quality adds portable ATS playbooks, normalized field memory with changed-wording review, observed field/upload evidence, structured failures and bounded handoffs. Every submit now requires a fresh comparison of the live job, answers, files and exact authorization. Confirmation text, private screenshots and matched email receipt references remain separate evidence events.
+
+Document registration is draft-only. Source-backed claims, requirement coverage/gaps, honest keywords, final-file parsing, rendered-file checks and a recruiter critique precede candidate approval and exact-job attachment checks. Candidate page/section rules never truncate content. Per-job version diffs and truthful role-family variants join the existing outcome analytics. The dashboard Application quality view shows the saved evidence and failures.
+
+Schema 5 migrates automatically with a verified private backup; stop old helpers/dashboards first. Existing records/grants remain, but old documents/checkpoints need the new checks before future use. Refresh installed skill copies normally. The host still performs authoring, visual/semantic review and browser work; no universal ATS compatibility or interview improvement is claimed. See [document quality](skills/careerpilot/references/document-quality.md) and [application quality](skills/careerpilot/references/application-quality.md).

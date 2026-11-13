@@ -217,6 +217,8 @@ class NetworkDailyTests(unittest.TestCase):
         (self.ws.root/doc['path']).write_text('Tampered synthetic content')
         with self.assertRaises(ValueError):self.op('daily-prepared',run_id=rid,job_id=jid,status='prepared',evidence='Must verify bytes')
         (self.ws.root/doc['path']).write_bytes(path.read_bytes())
+        from quality_fixtures import approve_text
+        approve_text(self.ws,jid,doc,path.read_text())
         self.op('daily-prepared',run_id=rid,job_id=jid,status='prepared',evidence='Synthetic material visually reviewed');self.op('daily-publish',run_id=rid)
         self.assertEqual(self.ws.read()['daily']['runs'][rid]['status'],'published')
 

@@ -165,3 +165,16 @@ Tests use synthetic workspaces and temporary database copies, never live service
 Real-world checking must confirm attribution discipline, employer/date interpretation,
 Gmail matching, and host adoption of approved tailoring guidance. Test results do
 not establish that any adjustment actually causes more interviews.
+
+
+## Stage 4 quality gates
+
+Schema 5 adds [document verification and review](document-quality.md) and
+[observed application safeguards](application-quality.md). These supersede the older
+minimal document/checkpoint/submission examples above. Registering a file is draft-only;
+verify claims, coverage, parsing and critique, obtain document approval, then check
+attachment for the exact job. Checkpoint answers/uploads require page confirmation.
+A fresh passed pre-submit-check is required before submit-begin; submitted/resolved
+confirmation references structured evidence. [Site playbooks](site-playbooks.md) guide
+bounded recovery without claiming live compatibility. Application quality in the
+dashboard shows private history and failures; it has no new execution endpoints.

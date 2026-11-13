@@ -1,3 +1,4 @@
+from quality_fixtures import preflight
 import copy
 import json
 import shutil
@@ -132,6 +133,7 @@ class LearningTests(unittest.TestCase):
             with self.assertRaises(ValueError):self.op('learning-outcome',job_id=jid,status='Offer',occurred_at=occurred,evidence='Invalid date',event_id='bad')
         other=self.job();self.op('checkpoint',job_id=other,checkpoint=dict(page_url='https://example.invalid/apply',step='Review',observation='Synthetic',answers=[],unresolved=[],complete=True));self.op('ready',job_id=other)
         aid=self.op('authorize',job_ids=[other],user_instruction='Synthetic permission',expires_at=(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat())['authorization_id']
+        self.assertEqual(preflight(self.ws,other,aid)['status'],'passed')
         self.op('submit-begin',job_id=other,authorization_id=aid)
         self.assertFalse(self.ws.read()['learning']['applications'][other]['confirmed'])
         self.op('uncertain',job_id=other,evidence='Synthetic ambiguous browser result')

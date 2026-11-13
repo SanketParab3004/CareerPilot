@@ -6,6 +6,8 @@ import backlog
 import learning
 import networking
 import daily
+import document_quality
+import application_quality
 import hashlib
 import html
 import json
@@ -17,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-VERSION = '0.11.0'
+VERSION = '0.12.0'
 TERMINAL = {'Submitted', 'Interview', 'Rejected', 'Offer', 'Withdrawn', 'Expired'}
 ACTIVE = {'Selected', 'Preparing', 'Filling', 'Ready for review'}
 
@@ -51,7 +53,7 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def fresh():
-    return {'schema_version': 4, 'networking': networking.empty(), 'daily': daily.empty(), 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
+    return {'schema_version': 5, 'document_quality': document_quality.empty(), 'application_quality': {'fields': {}, 'failures': [], 'playbook_notes': []}, 'networking': networking.empty(), 'daily': daily.empty(), 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
 
 def summary(state):
     counts = {}
@@ -87,10 +89,10 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            if state.get('schema_version') == 4:
+            if state.get('schema_version') == 5:
                 db.rollback()
-                return {'schema_version': 4, 'migrated': False}
-            require(state.get('schema_version') in {1, 2, 3}, 'Unsupported workspace schema')
+                return {'schema_version': 5, 'migrated': False}
+            require(state.get('schema_version') in {1, 2, 3, 4}, 'Unsupported workspace schema')
             old_version = state['schema_version']
             folder = self.root / 'backups'
             folder.mkdir(exist_ok=True)
@@ -111,11 +113,14 @@ class Workspace:
             if old_version <= 2:
                 learning.upgrade(state)
                 state.setdefault('migrations', []).append({'version':3, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
-            daily.upgrade(state)
-            state.setdefault('migrations', []).append({'version':4, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            if old_version <= 3:
+                daily.upgrade(state)
+                state.setdefault('migrations', []).append({'version':4, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            document_quality.upgrade(state)
+            state.setdefault('migrations', []).append({'version':5, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
             db.commit()
-            return {'schema_version':4, 'migrated':True, 'backup':str(backup)}
+            return {'schema_version':5, 'migrated':True, 'backup':str(backup)}
         except Exception:
             db.rollback()
             raise
@@ -128,7 +133,7 @@ class Workspace:
         db = sqlite3.connect(self.db_path)
         try:
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 4, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 5, 'Unsupported workspace schema')
             return state
         finally:
             db.close()
@@ -141,7 +146,7 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 4, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 5, 'Unsupported workspace schema')
             result = self.apply(state, request)
             learning.observe(state, request)
             state['events'].append({'at': utc(), 'op': request['op'], 'job_id': request.get('job_id'), 'result': result})
@@ -167,12 +172,23 @@ class Workspace:
             path = (self.root / doc['path']).resolve()
             require(path.is_relative_to(self.root), 'Document escaped workspace')
             require(path.is_file() and file_digest(path) == doc['sha256'], 'Document changed or missing; register and review it again')
-        return digest({'profile_revision': state['profile_revision'], 'url': job['url'], 'title': job['title'],
+        snapshot = {'profile_revision': state['profile_revision'], 'url': job['url'], 'title': job['title'],
                        'company': job['company'], 'description': job['description'], 'documents': job['documents'],
-                       'checkpoint': job.get('checkpoint')})
+                       'checkpoint': job.get('checkpoint')}
+        quality = []
+        for doc in job['documents']:
+            version = state['document_quality']['versions'].get(document_quality.key(job['id'], doc['sha256']), {})
+            if version.get('verification'):
+                quality.append({'sha256':doc['sha256'], 'verification_id':version['verification']['id'], 'approval':version.get('approval')})
+        if quality: snapshot['document_quality'] = quality
+        return digest(snapshot)
 
     def apply(self, state, data):
         op = text(data.get('op'), 'op')
+        if op in document_quality.OPS:
+            return document_quality.apply(self, state, data)
+        if op in application_quality.OPS:
+            return application_quality.apply(self, state, data)
         if op in networking.OPS:
             return networking.apply(self, state, data)
         if op in daily.OPS:
@@ -369,6 +385,7 @@ class Workspace:
             record = {'kind': kind, 'path': relative.as_posix(), 'sha256': sha, 'original_name': source.name}
             if record not in job['documents']:
                 job['documents'].append(record)
+            document_quality.register(state, job, record)
             job['review'] = None
             if old_status == 'Ready for review':
                 job['status'] = 'Preparing'
@@ -388,6 +405,7 @@ class Workspace:
                 backlog.safe_field(answer['field'])
             for field, pending in job.get('pending_answers', {}).items():
                 require(any(a['field'] == field and a['value'] == pending['value'] and a['source'] == pending['source'] for a in checkpoint['answers']), 'Checkpoint must confirm every pending candidate answer with its source')
+            application_quality.observe_checkpoint(self, state, job, checkpoint)
             job['pending_answers'] = {}
             job['checkpoint'] = dict(checkpoint, recorded_at=utc(), profile_revision=state['profile_revision'])
             job.setdefault('checkpoint_history', []).append(copy.deepcopy(job['checkpoint']))
@@ -425,6 +443,9 @@ class Workspace:
             checkpoint = job.get('checkpoint', {})
             require(checkpoint.get('complete') is True and not checkpoint.get('unresolved'), 'Required fields are incomplete or unresolved')
             require(checkpoint.get('profile_revision') == state['profile_revision'], 'Profile changed; inspect and checkpoint the form again')
+            document_quality.guard(self, state, job)
+            application_quality.observe_checkpoint(self, state, job, checkpoint)
+            require(not any(f['job_id'] == jid and not f.get('superseded') and (not f.get('approval') or f['profile_revision'] != state['profile_revision']) for f in state['application_quality']['fields'].values()), 'New, changed or stale question wording needs candidate approval')
             job['review'] = self.fingerprint(state, job)
             job['status'] = 'Ready for review'
         elif op == 'submit-begin':
@@ -434,12 +455,14 @@ class Workspace:
             grant = grants[0]
             require(not grant['revoked'] and datetime.fromisoformat(grant['expires_at']) > datetime.now(timezone.utc), 'Authorization expired or revoked')
             require(jid not in grant['used'] and grant['fingerprints'].get(jid) == self.fingerprint(state, job) == job.get('review'), 'Authorization does not cover this snapshot or was already used')
+            application_quality.submission_guard(self, state, job, grant['id'])
             grant['used'].append(jid)
             job['attempts'].append({'at': utc(), 'authorization_id': grant['id'], 'snapshot': job['review']})
             job['status'] = 'Submitting'
         elif op in {'submitted', 'uncertain', 'resolve', 'manual-submitted'}:
             if op == 'submitted':
                 require(old_status == 'Submitting', 'No pending submission attempt')
+                application_quality.confirmation_guard(self, job, data.get('confirmation_id'))
                 job['status'] = 'Submitted'
             elif op == 'uncertain':
                 require(old_status == 'Submitting', 'Only an in-flight submission can become uncertain')
@@ -447,6 +470,8 @@ class Workspace:
             elif op == 'resolve':
                 require(old_status in {'Submitting', 'Submission uncertain'}, 'No uncertain submission to resolve')
                 require(data.get('result') in {'submitted', 'not_submitted'}, 'Resolution must be submitted or not_submitted')
+                if data['result'] == 'submitted':
+                    application_quality.confirmation_guard(self, job, data.get('confirmation_id'))
                 job['status'] = 'Submitted' if data['result'] == 'submitted' else 'Preparing'
                 job['review'] = None
             else:
@@ -507,7 +532,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests']:
+    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests', 'quality']:
         sub.add_parser(name)
     dashboard = sub.add_parser('dashboard', help='Serve the live local read-only dashboard')
     dashboard.add_argument('--port', type=int, default=8765)
@@ -538,7 +563,9 @@ def main():
             result = ws.report()
         else:
             state = ws.read()
-            if args.command == 'referrals':
+            if args.command == 'quality':
+                result = {'documents': document_quality.view(state), 'applications': application_quality.view(state)}
+            elif args.command == 'referrals':
                 result = networking.view(state)
             elif args.command == 'digests':
                 result = daily.view(state)

@@ -173,6 +173,8 @@ def apply(ws,state,d):
             if status=='prepared':
                 need(job['documents'] and job.get('evaluation',{}).get('evidence'),'Register actual materials and evidence-backed evaluation before marking prepared')
                 ws.fingerprint(state,job)  # Verify registered document bytes, not just metadata.
+                import document_quality
+                document_quality.guard(ws,state,job)
             else:
                 ws.apply(state,dict(op='blocker-add',job_id=jid,type=d.get('blocker_type','needs_review'),
                     reason=text(d.get('evidence'),'actual blocker evidence'),evidence=d['evidence'],

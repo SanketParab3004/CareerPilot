@@ -294,6 +294,8 @@ def apply(ws, state, d):
             job['freshness'] = dict(job_url=job['url'], route_url=url(d.get('route_url')), open=d['open'], route_valid=d['route_valid'],
                 checked_at=checked.isoformat(), evidence=words(d.get('evidence'), 'live posting and route evidence'))
         elif op == 'handoff-draft':
+            import document_quality
+            document_quality.guard(ws, state, job)
             need(freshness_ok(job), 'Recheck posting and route before preparing handoff')
             need(re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', words(d.get('recipient'), 'recipient')), 'Use the published application email address')
             hid = uuid.uuid4().hex[:12]

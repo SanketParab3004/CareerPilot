@@ -120,3 +120,16 @@ schema 4 is a no-op. Stop older processes first. Stage 2 attribution/approvals a
 submission grants remain intact. Existing contact checked_at becomes last_verified_at;
 no connections, messages or candidate profile are imported by migration. Back up
 artifacts/imports separately; restore with a matching old helper if rolling back.
+
+
+## Stage 4 quality gates
+
+Schema 5 adds [document verification and review](document-quality.md) and
+[observed application safeguards](application-quality.md). These supersede the older
+minimal document/checkpoint/submission examples above. Registering a file is draft-only;
+verify claims, coverage, parsing and critique, obtain document approval, then check
+attachment for the exact job. Checkpoint answers/uploads require page confirmation.
+A fresh passed pre-submit-check is required before submit-begin; submitted/resolved
+confirmation references structured evidence. [Site playbooks](site-playbooks.md) guide
+bounded recovery without claiming live compatibility. Application quality in the
+dashboard shows private history and failures; it has no new execution endpoints.

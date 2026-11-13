@@ -43,3 +43,16 @@ Follow [backlog and recovery](backlog.md) for the schema-2 action queue, exact-t
 ## Stage 2 results integration
 
 Read [results and learning](learning.md) for schema-3 attribution, dated outcome history, sample-aware funnel rates, weekly review, stale-update settings, rejection reasons and approved adjustments. Use `analytics`, `weekly` and `guidance`; only the helper changes persistent state. Applied Gmail outcomes feed history, while pending/dismissed mail does not. Before new document preparation, consult approved tailoring guidance and record the actual approach with evidence. Statistical proposals require candidate approval and support undo; they do not authorize application submission or outreach.
+
+
+## Stage 4 quality gates
+
+Schema 5 adds [document verification and review](document-quality.md) and
+[observed application safeguards](application-quality.md). These supersede the older
+minimal document/checkpoint/submission examples above. Registering a file is draft-only;
+verify claims, coverage, parsing and critique, obtain document approval, then check
+attachment for the exact job. Checkpoint answers/uploads require page confirmation.
+A fresh passed pre-submit-check is required before submit-begin; submitted/resolved
+confirmation references structured evidence. [Site playbooks](site-playbooks.md) guide
+bounded recovery without claiming live compatibility. Application quality in the
+dashboard shows private history and failures; it has no new execution endpoints.

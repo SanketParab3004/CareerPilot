@@ -1,3 +1,4 @@
+from quality_fixtures import observed, preflight, receipt, approve_text, upload
 import importlib.util
 import json
 import tempfile
@@ -50,6 +51,8 @@ class SkillTests(unittest.TestCase):
     def checkpoint(self, jid, **overrides):
         c = dict(page_url='https://example.org/apply', step='Review', answers=[{'field':'Name','value':'Test Candidate','source':'Synthetic test profile'}], unresolved=[], complete=True, observation='Synthetic test: final review visible')
         c.update(overrides)
+        c['answers'] = observed(c['answers'])
+        c['uploads'] = [upload(d) for d in self.ws.read()['jobs'][jid]['documents']]
         self.run_op('checkpoint', job_id=jid, checkpoint=c)
 
     def authorize(self, jid):
@@ -109,6 +112,7 @@ class SkillTests(unittest.TestCase):
         grant = self.authorize(a)
         with self.assertRaises(ValueError):
             self.run_op('submit-begin', job_id=b, authorization_id=grant)
+        self.assertEqual(preflight(self.ws,a,grant)['status'], 'passed')
         self.run_op('submit-begin', job_id=a, authorization_id=grant)
         with self.assertRaises(ValueError):
             self.run_op('submit-begin', job_id=a, authorization_id=grant)
@@ -127,6 +131,7 @@ class SkillTests(unittest.TestCase):
         source = self.root / 'resume.txt'
         source.write_text('Synthetic resume', encoding='utf-8')
         self.run_op('document-add', job_id=jid, kind='resume', path=str(source))
+        approve_text(self.ws,jid,self.ws.read()['jobs'][jid]['documents'][0],source.read_text())
         self.ready(jid)
         grant = self.authorize(jid)
         doc = self.ws.read()['jobs'][jid]['documents'][0]
@@ -157,11 +162,12 @@ class SkillTests(unittest.TestCase):
         jid = self.job()
         self.ready(jid)
         grant = self.authorize(jid)
+        self.assertEqual(preflight(self.ws,jid,grant)['status'], 'passed')
         self.run_op('submit-begin', job_id=jid, authorization_id=grant)
         with self.assertRaises(ValueError):
             self.run_op('submitted', job_id=jid, evidence='')
         self.assertEqual(self.ws.read()['jobs'][jid]['status'], 'Submitting')
-        self.run_op('submitted', job_id=jid, evidence='Synthetic confirmation: Application received #TEST')
+        self.run_op('submitted', job_id=jid, confirmation_id=receipt(self.ws,jid), evidence='Synthetic confirmation: Application received #TEST')
         self.assertEqual(self.ws.read()['jobs'][jid]['status'], 'Submitted')
 
     def test_contact_requires_published_email_evidence_and_report_escapes(self):

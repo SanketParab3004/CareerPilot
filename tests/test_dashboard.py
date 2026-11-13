@@ -52,6 +52,15 @@ class DashboardTests(unittest.TestCase):
         self.ws.mutate({'op':'profile-save', 'profile':{'name':'Synthetic Candidate'}})
         self.assertEqual(json.loads(self.get('api/state')[2])['state']['profile']['name'], 'Synthetic Candidate')
 
+    def test_quality_views_are_read_only_and_have_no_execution_routes(self):
+        payload=json.loads(self.get('api/state')[2])
+        self.assertIsNone(payload['document_quality']['rules']['page_limit'])
+        self.assertEqual(payload['application_quality']['common_failures'],[])
+        for action in ['document-approve','document-exception','document-attach-check','pre-submit-check','confirmation-record','field-approve']:
+            headers={'Content-Type':'application/json','X-CareerPilot-Request':action,'Origin':self.server.origin}
+            self.assertEqual(self.get('api/'+action,'POST',headers=headers,body='{}')[0],405)
+        self.assertIn(b'Application quality',self.get('')[2])
+
     def test_action_queue_and_answer_controls(self):
         jid=self.ws.mutate(dict(op='job-add',title='Synthetic',company='Fixture',description='Test',source='Test',url='https://example.invalid/job'))['job_id']
         q=self.ws.mutate(dict(op='question-add',job_id=jid,question='Preferred arrangement?',context='candidate.preference',field='arrangement',evidence='Synthetic form'))['question_id']

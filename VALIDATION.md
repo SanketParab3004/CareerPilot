@@ -144,3 +144,41 @@ Quality flags are heuristics, not proof, and networking matches need verificatio
 Schema 4 automatically backs up and migrates older workspaces on first helper use;
 stop older processes first. No manual data rewrite is required. Refresh installed
 skill copies through the normal installer. Package: python tools/package_skill.py.
+
+## Stage 4 / release 0.12.0 validation
+
+November 7, 2026: 147 synthetic Python tests passed, zero failures or skips.
+New coverage checks claim manifests, source quotes/hashes, unsupported metrics/dates,
+paraphrase review, posting requirements and keyword provenance, contact/date/layout
+checks, DOCX table reading order, optional PDF dependency failure, page limits without
+truncation, recruiter blockers, exact document approval and reuse exceptions, version
+diffs and frozen outcomes, role variants in analytics, changed-wording field memory,
+page-confirmed fields, bounded failures and ATS detection, every pre-submit mismatch,
+expiry/revocation, screenshot/email receipt records, uncertainty and schema-4 copy
+migration with backup/failure/retry/idempotence. Earlier-stage tests remain passing.
+
+The initial regression run had ten ValueErrors because older synthetic fixtures lacked
+confirmed field observations or a pre-submit check. Fixtures were updated to exercise
+the new contract; no production bypass was added. The optional skill validator first
+failed with ModuleNotFoundError: No module named 'yaml'. Reusing the existing isolated
+validation dependency resolved it; no dependency was added to CareerPilot's core.
+Final skill validation, JavaScript syntax and packaging pass (39 portable files).
+
+A synthetic localhost browser check verified Application quality rules, grouped
+failure evidence, field wording awaiting review, expandable document critique,
+requirement gaps, parse evidence and version diff. No browser console warnings/errors
+were reported. No personal data, real workspace, live application, mailbox or messaging
+service was accessed by tests. Public documentation informed playbooks; that is not
+live portal validation. Screenshot receipt tests use synthetic files, not employer
+receipts. Mobile layout and actual PDF/DOCX rendering across host tools remain unverified.
+
+Host review must validate semantic entailment, completeness of requirements, visual
+reading order and actual browser fields. These tests prove workflow gates, not that
+a model always judges truth correctly, that an ATS parses identically, or that interview
+rates improve. Real-world checking should start with one authorized application held
+at review, including live uploads, address/iframe handling and receipt capture.
+
+Schema 5 backs up and migrates on first helper/dashboard use. Stop older processes
+first and refresh installed skill copies. Existing jobs/grants/outcomes remain; legacy
+documents are unverified and future uploads/checkpoints/submissions need the new
+checks. No manual DB rewrite is needed. The real job-search-workspace was untouched.

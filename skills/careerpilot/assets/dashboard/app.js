@@ -4,7 +4,7 @@ let filter = 'All statuses', search = '', sort = 'relevance', band = 'All scores
 let rankData = {}, activeSearch = null, selectedSearch = 'latest', searchPending = false, formSeeded = false;
 let actionQueue = [];
 let analyticsData = null, weeklyData = null, networkingData = null, dailyData = null;
-const titles = {referrals:'Referrals',daily:'Daily digest',analytics:'Funnel analytics',weekly:'Weekly review',queue:'Action queue',email:'Email updates',settings:'Accounts & alerts', assistance:'Assistance',overview: 'Overview', jobs: 'Job pipeline', profile: 'My profile', documents: 'Documents', contacts: 'Contacts & drafts', activity: 'Activity', history: 'Search history'};
+const titles = {quality:'Application quality',referrals:'Referrals',daily:'Daily digest',analytics:'Funnel analytics',weekly:'Weekly review',queue:'Action queue',email:'Email updates',settings:'Accounts & alerts', assistance:'Assistance',overview: 'Overview', jobs: 'Job pipeline', profile: 'My profile', documents: 'Documents', contacts: 'Contacts & drafts', activity: 'Activity', history: 'Search history'};
 const $ = id => document.getElementById(id);
 const jobs = () => Object.values(state?.jobs || {});
 const label = value => String(value).replaceAll('_', ' ').replaceAll('-', ' ').replace(/^./, c => c.toUpperCase());
@@ -160,13 +160,16 @@ function renderJob() {
   if(j.contacts.length)section(root,'Recruiting contacts',...j.contacts.map(contactCard));if(j.outreach.length)section(root,'Outreach drafts',...j.outreach.map(draftCard));
   if(j.notes.length)section(root,'Notes & outcomes',...j.notes.map(n=>add(el('div','row'),add(el('div'),el('small','',`${date(n.at)}${n.kind?' · '+label(n.kind):''}`),el('p','prose',n.text)))));
   if(j.attempts.length)section(root,'Submission attempts',valueNode(j.attempts));
+  if(j.pre_submit)section(root,'Latest pre-submit comparison',valueNode(j.pre_submit));
+  if(j.confirmations?.length)section(root,'Confirmation evidence',valueNode(j.confirmations));
+  section(root,'Document verification and version history',...documentHistory(j.id));
   if(rankData[j.id]?.learning_adjustment?.boost)add(root,add(panel('Approved ranking adjustment'),valueNode(rankData[j.id].learning_adjustment)));
   if(rankData[j.id]?.warm_path?.evidence?.length)add(root,add(panel('Warm-path boost'),valueNode(rankData[j.id].warm_path)));
   if(dailyData?.quality?.[j.id]?.length)add(root,add(panel('Quality and repeat-application warnings'),valueNode(dailyData.quality[j.id])));
   const description=el('details');add(description,el('summary','','Full saved job description'),el('p','prose',j.description));add(root,description);
 }
 function openJob(id){selectedJob=id;renderJob();if(!$('detail').open)$('detail').showModal();}
-function render(){if(!state)return;const root=$('content');root.replaceChildren();({referrals:referralsPage,daily:dailyPage,analytics:analyticsPage,weekly:weeklyPage,queue:queuePage,overview,jobs:jobList,profile:profilePage,documents:documentsPage,contacts:contactsPage,activity:activityPage,history:historyPage,settings:settingsPage,assistance:assistancePage,email:emailPage})[view](root);if($('detail').open)renderJob();}
+function render(){if(!state)return;const root=$('content');root.replaceChildren();({quality:qualityPage,referrals:referralsPage,daily:dailyPage,analytics:analyticsPage,weekly:weeklyPage,queue:queuePage,overview,jobs:jobList,profile:profilePage,documents:documentsPage,contacts:contactsPage,activity:activityPage,history:historyPage,settings:settingsPage,assistance:assistancePage,email:emailPage})[view](root);if($('detail').open)renderJob();}
 async function refresh(){
   if(busy)return;busy=true;
   try{const response=await fetch('api/state',{cache:'no-store'});if(!response.ok)throw new Error('Workspace unavailable');const payload=await response.json();const signature=JSON.stringify(payload);state=payload.state;networkingData=payload.networking;dailyData=payload.daily;analyticsData=payload.analytics;weeklyData=payload.weekly;actionQueue=payload.action_queue||[];workspace=payload.workspace;rankData=payload.rankings||{};activeSearch=payload.active_search||null;updateSearchStatus();if(!formSeeded){const last=runs().at(-1);$('role-input').value=last?.role||state.profile.target_roles?.[0]||'';$('location-input').value=last?.location||state.profile.location||'';$('posted-input').value=last?.posted_within||'any';$('unknown-dates').checked=last?.include_unknown_dates||false;formSeeded=true;}$('workspace').textContent=workspace;
@@ -351,4 +354,25 @@ function dailyPage(root){
       const decide=async decision=>{const input={run_id:run.id,job_id:j.id,decision,candidate_instruction:`Candidate chose ${decision} for this exact digest job`};if(decision==='approve'){input.expires_at=prompt('Expiry for submission authorization (ISO timestamp with timezone). This requires a ready, reviewed form:');if(!input.expires_at)return;}if(decision==='snooze'){input.until=prompt('Snooze until (ISO timestamp with timezone):');if(!input.until)return;}try{await localAction('daily-decision',input);await refresh();render();}catch(e){alert(e.message);}};
       const approve=button('Approve submission',()=>decide('approve'));approve.disabled=j.status!=='Ready for review';add(card,approve,button('Skip',()=>decide('skip')),button('Snooze',()=>decide('snooze')));if(approve.disabled)add(card,el('p','muted','Finish and review the live application form with your AI before approving submission.'));add(p,card);});
     const audit=el('details');add(audit,el('summary','','Other jobs and capacity/decision reasons'),valueNode(run.audit));add(p,audit);add(root,p);});
+}
+
+function documentHistory(jid) {
+  return Object.values(state.document_quality?.versions||{}).filter(v=>!jid||v.job_id===jid).map(v=>{
+    const d=el('details');const current=state.jobs[v.job_id]?.documents.some(x=>x.sha256===v.sha256);
+    add(d,el('summary','',`${label(v.kind)} · ${v.sha256.slice(0,12)} · ${current?'Current':'Previous'} · ${v.approval?'Approval recorded':'Needs review'}${v.legacy?' · Legacy, unverified':''}`));
+    add(d,el('p','muted',`Job ${v.job_id}. Saved approval may be stale after profile, rules or file changes; the helper rechecks before attachment.`));
+    if(v.verification){add(d,valueNode({coverage:v.verification.requirements,parse:v.verification.parse,critique:v.verification.critique,variant:v.verification.variant_id,approval:v.approval}),el('h3','','Changes from previous version'),el('pre','prose',v.verification.diff||'No extracted-text changes.'),el('p','muted',v.verification.prior_text_known?'Compared with the verified previous version.':'Previous extracted text unavailable; shown as an addition.'));
+      const claims=el('details');add(claims,el('summary','','Claims and source evidence'),valueNode(v.verification.claims));add(d,claims);
+    }else add(d,el('p','muted','Not verified. Ask your AI to review claims, final-file parsing, requirement coverage and recruiter critique.'));
+    return d;
+  });
+}
+function qualityPage(root){
+  add(root,heading('Better applications, with evidence','Document reviews, observed failures and form safeguards.',ask('Review with AI','Review application quality in this workspace: document claims, parse checks, gaps, recruiter critiques, field memory and site failures. Show evidence and ask for exact approvals where needed. Do not submit.')));
+  const rules=panel('Your document rules');add(rules,valueNode(state.document_quality?.rules||{}),el('p','muted','No page limit by default. Violations block approval; content is never silently cut.'),ask('Change document rules','Help me set document page limits and required sections. Save my preferences through document-rules; do not truncate content.'));add(root,rules);
+  const failures=state.application_quality?.failures||[];const groups=new Map();failures.forEach(f=>{const key=JSON.stringify([f.site,f.step,f.failure_type]);const row=groups.get(key)||{site:f.site,step:f.step,type:f.failure_type,count:0,evidence:[]};row.count++;row.evidence.push(f.evidence);groups.set(key,row);});
+  const common=panel('Common observed failures');[...groups.values()].sort((a,b)=>b.count-a.count).forEach(f=>add(common,valueNode(f)));if(!failures.length)add(common,el('p','muted','No failures recorded. This does not establish site compatibility.'));add(root,common);
+  const fields=panel('Field wording review');Object.values(state.application_quality?.fields||{}).forEach(f=>add(fields,valueNode({job:f.job_id,type:f.question_type,context:f.context,question:f.question,previous_wording:f.previous_wording,suggested_value:f.suggested_value,status:f.approval?'Approval recorded':'Candidate review required'})));add(root,fields);
+  const history=panel('Document versions & recruiter reviews');add(history,...documentHistory());add(root,history);
+  const recoveries=state.application_quality?.playbook_notes||[];if(recoveries.length)add(root,add(panel('Observed tenant recoveries'),valueNode(recoveries)));
 }

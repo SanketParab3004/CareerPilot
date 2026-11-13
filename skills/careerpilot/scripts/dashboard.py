@@ -4,6 +4,8 @@ import backlog
 import learning
 import networking
 import daily
+import document_quality
+import application_quality
 import hashlib
 import json
 import secrets
@@ -29,7 +31,7 @@ def read_state(root):
         if not row:
             raise ValueError('No saved workspace state')
         state = json.loads(row[0])
-        if state.get('schema_version') != 4:
+        if state.get('schema_version') != 5:
             raise ValueError('Unsupported workspace schema')
         return state
     finally:
@@ -106,7 +108,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             state = read_state(server.root)
             if route == 'api/state':
                 return self.respond(200, json.dumps({'state': state, 'workspace': str(server.root),
-                    'networking': networking.view(state), 'daily': daily.view(state), 'analytics': learning.analytics(state), 'weekly': learning.weekly(state), 'action_queue': backlog.queue(state), 'rankings': rankings(state), 'active_search': server.search.active}, ensure_ascii=False), 'application/json; charset=utf-8')
+                    'document_quality': document_quality.view(state), 'application_quality': application_quality.view(state), 'networking': networking.view(state), 'daily': daily.view(state), 'analytics': learning.analytics(state), 'weekly': learning.weekly(state), 'action_queue': backlog.queue(state), 'rankings': rankings(state), 'active_search': server.search.active}, ensure_ascii=False), 'application/json; charset=utf-8')
             if route == 'api/export':
                 return self.respond(200, json.dumps(state, indent=2, ensure_ascii=False), 'application/json; charset=utf-8', 'job-workspace.json')
             query = parse_qs(parsed.query)

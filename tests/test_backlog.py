@@ -1,3 +1,4 @@
+from quality_fixtures import observed, preflight
 import copy
 from contextlib import closing
 import json
@@ -46,6 +47,7 @@ class BacklogTests(unittest.TestCase):
         return self.op('resume-inspect',**dict(dict(job_id=jid,page_url='https://example.invalid/apply',checked_at=clock(),result='safe',evidence='Synthetic live form matches role and saved answers; no submit occurred'),**changes))
 
     def checkpoint(self,jid,**changes):
+        if 'answers' in changes: changes['answers']=observed(changes['answers'])
         self.op('checkpoint',job_id=jid,checkpoint=dict(dict(page_url='https://example.invalid/apply',step='Review',answers=[],unresolved=[],complete=True,observation='Synthetic final review'),**changes))
 
     def question(self,jid,context='candidate.preference'):
@@ -156,6 +158,7 @@ class BacklogTests(unittest.TestCase):
     def test_uncertain_submission_cannot_resume_or_reuse_grant(self):
         jid=self.job();self.op('start',job_id=jid);self.checkpoint(jid);self.op('ready',job_id=jid)
         grant=self.op('authorize',job_ids=[jid],user_instruction='Synthetic permission',expires_at=clock(1))['authorization_id']
+        self.assertEqual(preflight(self.ws,jid,grant)['status'],'passed')
         self.op('submit-begin',job_id=jid,authorization_id=grant);self.op('interrupt',job_id=jid,evidence='Synthetic crash after click')
         self.assertEqual(self.ws.read()['jobs'][jid]['status'],'Submission uncertain')
         for op,args in [('start',{}),('submit-begin',{'authorization_id':grant}),('resume-inspect',dict(page_url='https://example.invalid/apply',result='safe',checked_at=clock(),evidence='Guess')),('blocker-add',dict(type='login_account',reason='login',next_action='login'))]:
