@@ -4,7 +4,7 @@ let filter = 'All statuses', search = '', sort = 'relevance', band = 'All scores
 let rankData = {}, activeSearch = null, selectedSearch = 'latest', searchPending = false, formSeeded = false;
 let actionQueue = [];
 let analyticsData = null, weeklyData = null, networkingData = null, dailyData = null;
-const titles = {quality:'Application quality',referrals:'Referrals',daily:'Daily digest',analytics:'Funnel analytics',weekly:'Weekly review',queue:'Action queue',email:'Email updates',settings:'Accounts & alerts', assistance:'Assistance',overview: 'Overview', jobs: 'Job pipeline', profile: 'My profile', documents: 'Documents', contacts: 'Contacts & drafts', activity: 'Activity', history: 'Search history'};
+const titles = {setup:'Guided setup',quality:'Application quality',referrals:'Referrals',daily:'Daily digest',analytics:'Funnel analytics',weekly:'Weekly review',queue:'Action queue',email:'Email updates',settings:'Accounts & alerts', assistance:'Assistance',overview: 'Overview', jobs: 'Job pipeline', profile: 'My profile', documents: 'Documents', contacts: 'Contacts & drafts', activity: 'Activity', history: 'Search history'};
 const $ = id => document.getElementById(id);
 const jobs = () => Object.values(state?.jobs || {});
 const label = value => String(value).replaceAll('_', ' ').replaceAll('-', ' ').replace(/^./, c => c.toUpperCase());
@@ -26,7 +26,7 @@ function valueNode(value) {
   if(typeof value === 'object') { const dl = el('dl','facts'); Object.entries(value).forEach(([k,v]) => add(dl,el('dt','',label(k)),add(el('dd'),valueNode(v)))); return dl; }
   return el('span','prose',value);
 }
-function jobRow(job, showReason=false) { const row = el('div','row'); add(row, add(el('div'),button(job.title,()=>openJob(job.id),'text-button'),el('small','',`${job.company} · ${job.location || 'Location not recorded'}`),el('small','',`Relevance ${rankData[job.id]?.score ?? 0}/100 · Posted ${posted(job)?new Date(posted(job)).toLocaleDateString():'Unknown'}`),showReason ? el('p','muted',nextAction(job)) : null),pill(job.status)); return row; }
+function jobRow(job, showReason=false) { const row = el('div','row'); add(row, add(el('div'),button(job.title,()=>openJob(job.id),'text-button'),el('small','',`${job.company} · ${job.location || 'Location not recorded'}`),el('small','',`Relevance ${rankData[job.id]?.score ?? 0}/100 · Posted ${posted(job)?regionalDate(posted(job)):'Unknown'}`),showReason ? el('p','muted',nextAction(job)) : null),pill(job.status)); return row; }
 function nextAction(job) {
   if(job.status === 'Needs attention') return job.next_action || job.blocker || 'Review the blocker with your AI.';
   if(['Submission uncertain','Submitting'].includes(job.status)) return 'Check the application portal for confirmation before retrying.';
@@ -77,7 +77,7 @@ function searchOverview(root, run) {
   add(p,add(el('div'),el('h2','',`${run.role} · ${run.location}`),el('p','muted',`${period(run)} · Search started ${fullDate(run.created_at)} · ${runStatus(run)}`)),el('span','pill',`${run.job_ids.length} results`));
   if(run.error)add(p,el('p','warning-text',run.error));
   if(run.kind==='primary-portals'){
-    add(p,el('p','muted',`Required sources: LinkedIn + Indeed · Verified external applications only · ${run.exclusions?.length||0} observations excluded or unverified.`));
+    add(p,el('p','muted',`Required sources: ${(run.required_sources||[]).join(" + ")} · Verified external applications only · ${run.exclusions?.length||0} observations excluded or unverified.`));
     if(['awaiting_agent','running'].includes(run.status))add(p,ask('Continue primary search with AI',portalPrompt(run.id)));
     if(run.exclusions?.length){const excluded=el('details');add(excluded,el('summary','','Excluded / unverified observations'));run.exclusions.forEach(e=>add(excluded,add(el('p'),external(e.source,e.source_url),el('span','',` — ${e.reason}`))));add(p,excluded);}
   }else add(p,el('p','warning-text','Supplementary / historical list: LinkedIn + Indeed coverage and external-only eligibility are not verified.'));
@@ -169,10 +169,10 @@ function renderJob() {
   const description=el('details');add(description,el('summary','','Full saved job description'),el('p','prose',j.description));add(root,description);
 }
 function openJob(id){selectedJob=id;renderJob();if(!$('detail').open)$('detail').showModal();}
-function render(){if(!state)return;const root=$('content');root.replaceChildren();({quality:qualityPage,referrals:referralsPage,daily:dailyPage,analytics:analyticsPage,weekly:weeklyPage,queue:queuePage,overview,jobs:jobList,profile:profilePage,documents:documentsPage,contacts:contactsPage,activity:activityPage,history:historyPage,settings:settingsPage,assistance:assistancePage,email:emailPage})[view](root);if($('detail').open)renderJob();}
+function render(){if(!state)return;const root=$('content');root.replaceChildren();if(view==='overview'&&!state.profile.name)add(root,button('Start guided setup',()=>go('setup')));({setup:setupPage,quality:qualityPage,referrals:referralsPage,daily:dailyPage,analytics:analyticsPage,weekly:weeklyPage,queue:queuePage,overview,jobs:jobList,profile:profilePage,documents:documentsPage,contacts:contactsPage,activity:activityPage,history:historyPage,settings:settingsPage,assistance:assistancePage,email:emailPage})[view](root);if($('detail').open)renderJob();}
 async function refresh(){
   if(busy)return;busy=true;
-  try{const response=await fetch('api/state',{cache:'no-store'});if(!response.ok)throw new Error('Workspace unavailable');const payload=await response.json();const signature=JSON.stringify(payload);state=payload.state;networkingData=payload.networking;dailyData=payload.daily;analyticsData=payload.analytics;weeklyData=payload.weekly;actionQueue=payload.action_queue||[];workspace=payload.workspace;rankData=payload.rankings||{};activeSearch=payload.active_search||null;updateSearchStatus();if(!formSeeded){const last=runs().at(-1);$('role-input').value=last?.role||state.profile.target_roles?.[0]||'';$('location-input').value=last?.location||state.profile.location||'';$('posted-input').value=last?.posted_within||'any';$('unknown-dates').checked=last?.include_unknown_dates||false;formSeeded=true;}$('workspace').textContent=workspace;
+  try{const response=await fetch('api/state',{cache:'no-store'});if(!response.ok)throw new Error('Workspace unavailable');const payload=await response.json();const signature=JSON.stringify(payload);state=payload.state;networkingData=payload.networking;dailyData=payload.daily;analyticsData=payload.analytics;weeklyData=payload.weekly;actionQueue=payload.action_queue||[];workspace=payload.workspace;$('candidate-workspace').textContent='Active workspace: '+workspace+' · '+(state.profile.name || 'Unnamed candidate')+'. Check this before taking action.';rankData=payload.rankings||{};activeSearch=payload.active_search||null;updateSearchStatus();if(!formSeeded){const last=runs().at(-1);$('role-input').value=last?.role||state.profile.target_roles?.[0]||'';$('location-input').value=last?.location||state.profile.location||'';$('posted-input').value=last?.posted_within||'any';$('unknown-dates').checked=last?.include_unknown_dates||false;formSeeded=true;}$('workspace').textContent=workspace;
     if(signature!==lastPayload && view!=='settings' && !(['email','queue','analytics','daily','referrals'].includes(view) && $('content').contains(document.activeElement))){lastPayload=signature;const active=document.activeElement;const isSearch=active?.type==='search';const caret=isSearch?active.selectionStart:null;render();if(isSearch){const input=document.querySelector('input[type="search"]');input?.focus();if(input&&caret!==null)input.setSelectionRange(caret,caret);}}
     $('sync').textContent=`Synced ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;$('error').hidden=true;
   }catch{ $('sync').textContent='Disconnected';$('error').hidden=false;$('error').textContent=state?'Connection lost. You are viewing the last successful snapshot. Restart the dashboard or refresh when the workspace is available.':'Cannot load this workspace. Check that the dashboard server is still running, then refresh.';}finally{busy=false;}
@@ -274,7 +274,7 @@ function emailPage(root) {
   if(checks.length){const history=panel('Email check history');checks.slice(0,20).forEach(c=>add(history,add(el('div','row'),add(el('div'),el('strong','',`${fullDate(c.started_at)} · ${c.status}`),el('p','muted',c.scope),el('small','',`${c.account} · ${c.count} new records${c.status==='running'?' · Completion not recorded; ask your agent to reconcile this run.':''}`)))));add(root,history);}
 }
 
-function portalPrompt(id){return `Run primary portal search ${id} using the portal-search workflow. LinkedIn and Indeed are both required. Exclude LinkedIn Easy Apply and all Indeed on-platform applications, including listings that also provide an external link. Verify employer/ATS destination before including a job. Preserve posting dates, rank all qualifying matches including low scores, and report blocked or partial source coverage honestly. Do not submit applications.`;}
+function portalPrompt(id){return `Run primary portal search ${id} using the portal-search workflow. Use the exact configured sources listed in the saved run. Exclude LinkedIn Easy Apply and all Indeed on-platform applications, including listings that also provide an external link. Verify employer/ATS destination before including a job. Preserve posting dates, rank all qualifying matches including low scores, and report blocked or partial source coverage honestly. Do not submit applications.`;}
 
 function queuePage(root) {
   add(root,heading('Clear the backlog.','Prioritized by deadline, then age. Unknown deadlines and effort remain unknown.'));
@@ -346,10 +346,10 @@ function referralsPage(root){
 function dailyPage(root){
   const data=dailyData;if(!data)return;add(root,heading('Your daily top five.','A saved host workflow. No schedule or background agent is installed automatically.'));
   const settings=panel('Daily preparation capacity');add(settings,el('p','',`${data.config.capacity} jobs per UTC day across all daily runs`));const count=el('input');count.type='number';count.min='1';count.max='5';count.value=data.config.capacity;count.setAttribute('aria-label','Daily capacity');add(settings,count,button('Save capacity',async()=>{try{await localAction('daily-config',{capacity:Number(count.value)});await refresh();render();}catch(e){alert(e.message);}}));add(root,settings);
-  const profiles=panel('Saved search profiles');data.profiles.forEach(p=>add(profiles,add(el('article','panel'),el('h3','',p.name),el('p','',`${p.query.role} · ${p.query.location} · capacity ${p.capacity}`),valueNode(p.rules),button('Run daily workflow',async()=>{try{const r=await localAction('daily-start',{profile_id:p.id});await refresh();request(`Read daily.md. Execute daily run ${r.id}, search ${r.search_id}: search both required portals, preserve partial coverage, deduplicate and flag quality with evidence, build top five, claim capacity and prepare actual materials, then publish a dashboard digest. No submissions or outreach. Do not install a schedule.`);}catch(e){alert(e.message);}}))));
+  const profiles=panel('Saved search profiles');data.profiles.forEach(p=>add(profiles,add(el('article','panel'),el('h3','',p.name),el('p','',`${p.query.role} · ${p.query.location} · capacity ${p.capacity}`),valueNode(p.rules),button('Run daily workflow',async()=>{try{const r=await localAction('daily-start',{profile_id:p.id});await refresh();request(`Read daily.md. Execute daily run ${r.id}, search ${r.search_id}: search each configured portal, preserve partial coverage, deduplicate and flag quality with evidence, build top five, claim capacity and prepare actual materials, then publish a dashboard digest. No submissions or outreach. Do not install a schedule.`);}catch(e){alert(e.message);}}))));
   add(profiles,ask('Save a search profile','Read daily.md. Help me save a daily search profile with role, location, posting-age window, capacity and my explicitly confirmed eligibility, salary and location rules. Unknown facts stay unknown.'));add(root,profiles);
   data.runs.slice().reverse().forEach(run=>{const p=panel(`Daily run · ${fullDate(run.created_at)}`,`${run.status} · Coverage: ${run.coverage_status||'Not checked yet'}`);add(p,valueNode(run.coverage||[]));
-    if(run.status!=='published')add(p,ask('Continue run with AI',`Read daily.md and continue daily run ${run.id} safely from saved state. Finish both primary source reports; enforce capacity and freshness. No automatic submissions or outreach.`));
+    if(run.status!=='published')add(p,ask('Continue run with AI',`Read daily.md and continue daily run ${run.id} safely from saved state. Finish the configured primary source reports; enforce capacity and freshness. No automatic submissions or outreach.`));
     run.items.forEach(item=>{const j=state.jobs[item.job_id],card=el('article','panel');add(card,button(`${j.company} · ${j.title}`,()=>openJob(j.id),'text-button'),pill(item.preparation),el('p','',`Rank score ${item.rank.score} (base ${item.rank.base_score ?? item.rank.score}, warm path +${item.rank.warm_path?.boost||0}, approved learning +${item.rank.learning_adjustment?.boost||0}) · Decision: ${item.decision}`),valueNode(item.flags));
       const decide=async decision=>{const input={run_id:run.id,job_id:j.id,decision,candidate_instruction:`Candidate chose ${decision} for this exact digest job`};if(decision==='approve'){input.expires_at=prompt('Expiry for submission authorization (ISO timestamp with timezone). This requires a ready, reviewed form:');if(!input.expires_at)return;}if(decision==='snooze'){input.until=prompt('Snooze until (ISO timestamp with timezone):');if(!input.until)return;}try{await localAction('daily-decision',input);await refresh();render();}catch(e){alert(e.message);}};
       const approve=button('Approve submission',()=>decide('approve'));approve.disabled=j.status!=='Ready for review';add(card,approve,button('Skip',()=>decide('skip')),button('Snooze',()=>decide('snooze')));if(approve.disabled)add(card,el('p','muted','Finish and review the live application form with your AI before approving submission.'));add(p,card);});
@@ -375,4 +375,41 @@ function qualityPage(root){
   const fields=panel('Field wording review');Object.values(state.application_quality?.fields||{}).forEach(f=>add(fields,valueNode({job:f.job_id,type:f.question_type,context:f.context,question:f.question,previous_wording:f.previous_wording,suggested_value:f.suggested_value,status:f.approval?'Approval recorded':'Candidate review required'})));add(root,fields);
   const history=panel('Document versions & recruiter reviews');add(history,...documentHistory());add(root,history);
   const recoveries=state.application_quality?.playbook_notes||[];if(recoveries.length)add(root,add(panel('Observed tenant recoveries'),valueNode(recoveries)));
+}
+
+function setupPage(root) {
+  const card = panel('Set up CareerPilot');
+  add(card, el('p','', 'Check the workspace below before saving candidate information. You can skip any step and return later.'));
+  const steps = [
+    ['profile','Candidate profile','profile','Import my resume or ask for my confirmed profile facts. Preview changes before saving.'],
+    ['targets','Job targets and region','jobs','Set my target roles, countries, portals, currency, language, date format and local work-authorization questions. Ask me rather than assuming eligibility.'],
+    ['browser','Browser tool',null,'Verify a browser tool is available in this host. Check only capabilities; do not apply or log in.'],
+    ['gmail','Gmail access','email','Check Gmail access for the account I choose, with read-only permissions.'],
+    ['alerts','Telegram alerts','settings','Help me configure Telegram in Accounts & alerts and explain how to test delivery.'],
+  ];
+  for (const [key, label, destination, prompt] of steps) {
+    const row = el('section','detail-section');
+    add(row, el('h3','',label), el('p','muted',state.setup?.[key] || 'pending'),
+        ask('Set up with AI', 'Use the exact workspace ' + workspace + '. ' + prompt));
+    if (destination) add(row, button('Open section', () => go(destination)));
+    for (const [status, caption] of [['done','Mark done'],['skipped','Skip'],['pending','Reopen']]) {
+      add(row, button(caption, async () => {
+        try { await localAction('setup-step', {step:key,status}); await refresh(); }
+        catch (err) { $('error').textContent = err.message; $('error').hidden = false; }
+      }));
+    }
+    add(card,row);
+  }
+  add(root,card);
+}
+function regionalDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Unknown';
+  const settings = state?.international || {};
+  const y = date.getFullYear(), m = String(date.getMonth()+1).padStart(2,'0'), d = String(date.getDate()).padStart(2,'0');
+  if (settings.date_format === 'iso') return [y,m,d].join('-');
+  if (settings.date_format === 'dmy') return [d,m,y].join('/');
+  if (settings.date_format === 'mdy') return [m,d,y].join('/');
+  try { return date.toLocaleDateString(settings.language); }
+  catch { return date.toLocaleDateString(); }
 }

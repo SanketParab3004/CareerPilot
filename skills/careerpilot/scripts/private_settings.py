@@ -45,16 +45,71 @@ def protect(data, decrypt=False):
         free(outgoing.data)
 
 
+def native_keychain():
+    import sys
+    try:
+        if sys.platform == 'darwin':
+            from keyring.backends.macOS import Keyring
+        elif sys.platform.startswith('linux'):
+            from keyring.backends.SecretService import Keyring
+        else:
+            raise RuntimeError('No supported keychain')
+        backend = Keyring()
+        if backend.priority <= 0:
+            raise RuntimeError('Keychain unavailable')
+        return backend
+    except Exception as exc:
+        raise ValueError('Unlock macOS Keychain or Linux Secret Service and install keyring and cryptography, or use browser autofill.') from exc
+
+
+def keychain_protect(root, data, decrypt=False):
+    try:
+        from cryptography.fernet import Fernet
+        backend = native_keychain()
+        key = backend.get_password('CareerPilot', str(root))
+        if key is None:
+            if decrypt:
+                raise ValueError('Keychain key missing')
+            key = Fernet.generate_key().decode('ascii')
+            backend.set_password('CareerPilot', str(root), key)
+        fernet = Fernet(key.encode('ascii'))
+        return fernet.decrypt(data) if decrypt else fernet.encrypt(data)
+    except Exception as exc:
+        raise ValueError('Cannot use this workspace keychain. Unlock the native store or use browser autofill. After moving workspaces, reconnect credentials.') from exc
+
+
+def remove_keychain_key(root):
+    backend = native_keychain()
+    if backend.get_password('CareerPilot', str(root)) is not None:
+        backend.delete_password('CareerPilot', str(root))
+
+
+def credential_supported():
+    if os.name == 'nt':
+        return True
+    try:
+        from cryptography.fernet import Fernet
+        native_keychain()
+        return True
+    except (ImportError, ValueError):
+        return False
+
+
 class Settings:
     def __init__(self, root):
         self.path = root / 'private-settings.sqlite3'
+
+    def crypt(self, data, decrypt=False):
+        if os.name == 'nt':
+            return protect(data, decrypt)
+        return keychain_protect(self.path.parent.resolve(), data, decrypt)
 
     def read(self):
         if not self.path.exists():
             return {'signup': {}, 'sites': {}, 'telegram': {}}
         with closing(sqlite3.connect(self.path)) as db:
             row = db.execute('SELECT value FROM private WHERE id=1').fetchone()
-        return json.loads(protect(row[0], True))
+        return json.loads(self.crypt(row[0], True))
 
     def change(self, update):
         # Serialize read-modify-write across dashboard and browser helpers.
@@ -62,15 +117,15 @@ class Settings:
             db.execute('CREATE TABLE IF NOT EXISTS private(id INTEGER PRIMARY KEY, value BLOB NOT NULL)')
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT value FROM private WHERE id=1').fetchone()
-            data = json.loads(protect(row[0], True)) if row else {'signup': {}, 'sites': {}, 'telegram': {}}
+            data = json.loads(self.crypt(row[0], True)) if row else {'signup': {}, 'sites': {}, 'telegram': {}}
             update(data)
-            db.execute('INSERT OR REPLACE INTO private VALUES(1,?)', (protect(json.dumps(data).encode()),))
+            db.execute('INSERT OR REPLACE INTO private VALUES(1,?)', (self.crypt(json.dumps(data).encode()),))
             db.commit()
         return self.public()
 
     def public(self):
         data = self.read()
-        return {'signup': data['signup'], 'supported': os.name == 'nt',
+        return {'signup': data['signup'], 'supported': credential_supported(),
                 'sites': {k: {f: v for f, v in s.items() if f != 'password'} | {'password_saved': bool(s.get('password'))}
                           for k, s in data['sites'].items()},
                 'telegram': {'configured': bool(data['telegram'].get('token') and data['telegram'].get('chat_id')),

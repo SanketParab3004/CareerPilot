@@ -110,7 +110,7 @@ def apply(ws,state,d):
         if running:return running
         sid=ws.apply(state,dict(op='portal-search-start',**profile['query']))['search_id'];rid=uuid.uuid4().hex[:12]
         daily['runs'][rid]=dict(id=rid,profile_id=profile['id'],profile_snapshot=copy.deepcopy(profile),day=day,search_id=sid,status='awaiting_agent',created_at=now().isoformat(),items=[],audit=[],delivery='not_requested')
-        return dict(daily['runs'][rid],next_action='Host: run both primary portals, record source coverage, build digest, prepare within capacity, publish. No scheduler installed.')
+        return dict(daily['runs'][rid],next_action='Host: run the configured primary portals, record source coverage, build digest, prepare within capacity, publish. No scheduler installed.')
     if op in {'job-identity','job-quality','contact-verify'}:
         job=state['jobs'].get(d.get('job_id'));need(job is not None,'Unknown job')
         if op=='contact-verify':
@@ -138,7 +138,7 @@ def apply(ws,state,d):
     run=daily['runs'].get(d.get('run_id'));need(run is not None,'Unknown daily run')
     if op=='daily-build':
         need(run['status']=='awaiting_agent','Digest already built')
-        search=state['searches'][run['search_id']];need(search['status'] in {'complete','partial','failed'},'Finish both required portal coverage records first')
+        search=state['searches'][run['search_id']];need(search['status'] in {'complete','partial','failed'},'Finish the configured portal coverage records first')
         from job_search import rankings
         ranks=rankings(state);items=[];audit=[];rules=run['profile_snapshot']['rules']
         remaining=min(run['profile_snapshot']['capacity'],max(0,daily['config']['capacity']-len(daily['usage'].get(run['day'],[]))))

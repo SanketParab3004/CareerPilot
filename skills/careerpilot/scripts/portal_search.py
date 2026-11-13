@@ -54,19 +54,20 @@ def apply(ws, state, data):
         query = validate_query(data)
         result = ws.apply(state, {'op':'search-start', **query})
         run = state['searches'][result['search_id']]
-        run.update(kind='primary-portals', status='awaiting_agent', required_sources=list(PORTALS),
+        run.update(kind='primary-portals', status='awaiting_agent', required_sources=list(state.get('international', {}).get('portals', PORTALS)),
                    external_only=True, exclusions=[], source_checks={})
         return dict(result, status=run['status'])
     run = state.get('searches', {}).get(data.get('search_id'))
     require(run is not None and run.get('kind') == 'primary-portals', 'Unknown primary-portal search.')
     require(run['status'] in {'awaiting_agent','running'}, 'This portal search is finished.')
+    required = run.get('required_sources', PORTALS)
     if op == 'portal-search-begin':
         run.update(status='running', updated_at=utc())
         return {'search_id':run['id'], 'status':run['status']}
     if op == 'portal-search-results':
         require(run['status'] == 'running', 'Begin this search before recording observations.')
         source = data.get('source')
-        require(source in PORTALS, 'LinkedIn and Indeed are the required primary portals.')
+        require(source in required, 'This portal is outside the search configuration.')
         require(source not in run['source_checks'], 'This portal is already marked finished for this run.')
         rows = data.get('jobs')
         require(isinstance(rows, list) and len(rows) <= 200, 'Supply at most 200 observations per batch.')
@@ -116,7 +117,7 @@ def apply(ws, state, data):
         return {'search_id':run['id'], 'accepted':accepted, 'excluded':len(rows)-accepted}
     if op == 'portal-source-finish':
         source = data.get('source')
-        require(source in PORTALS and data.get('status') in {'complete','partial','blocked','failed'}, 'Invalid source completion.')
+        require(source in required and data.get('status') in {'complete','partial','blocked','failed'}, 'Invalid source completion.')
         note = data.get('note')
         require(isinstance(note,str) and 0 < len(note.strip()) <= 2000, 'Record actual search scope, limits or blocker.')
         coverage = {'source':source, 'status':data['status'], 'scope':note, 'warning':note if data['status']!='complete' else '',
@@ -128,8 +129,8 @@ def apply(ws, state, data):
         run['updated_at'] = utc()
         return {'search_id':run['id'], 'source':source, 'status':coverage['status']}
     if op == 'portal-search-finish':
-        require(all(s in run['source_checks'] for s in PORTALS), 'Record the outcome for both LinkedIn and Indeed; do not silently substitute feeds.')
-        statuses = [run['source_checks'][s]['status'] for s in PORTALS]
+        require(all(s in run['source_checks'] for s in required), 'Record outcomes for each configured portal.')
+        statuses = [run['source_checks'][s]['status'] for s in required]
         run['status'] = 'complete' if all(s=='complete' for s in statuses) else 'failed' if all(s in {'blocked','failed'} for s in statuses) else 'partial'
         run['updated_at'] = utc()
         return {'search_id':run['id'], 'status':run['status'], 'count':len(run['job_ids'])}

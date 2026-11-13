@@ -176,3 +176,7 @@ Document registration is draft-only. Source-backed claims, requirement coverage/
 Schema 5 migrates automatically with a verified private backup; stop old helpers/dashboards first. Existing records/grants remain, but old documents/checkpoints need the new checks before future use. Refresh installed skill copies normally. The host still performs authoring, visual/semantic review and browser work; no universal ATS compatibility or interview improvement is claimed. See [document quality](skills/careerpilot/references/document-quality.md) and [application quality](skills/careerpilot/references/application-quality.md).
 
 Stage 5 adds private interview and offer records. See [interviews and offers](skills/careerpilot/references/interviews.md). Schema 6 upgrades with a private backup.
+
+## CareerPilot 1.0.0
+
+[Quickstart and private workspace commands](skills/careerpilot/references/setup.md) · [Compatibility](COMPATIBILITY.md) · [Upgrade](UPGRADE.md) · [Changelog](CHANGELOG.md)

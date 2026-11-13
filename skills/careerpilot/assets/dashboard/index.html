@@ -8,10 +8,12 @@
   <script src="app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <aside class="sidebar">
     <a class="brand" href="#overview"><span class="brand-mark">C<span>↗</span></span><span>CareerPilot<small>YOUR NEXT CHAPTER</small></span></a>
     <div class="nav-label">WORKSPACE</div>
     <nav aria-label="Main navigation">
+      <button data-view="setup">Guided setup</button>
       <button data-view="overview" class="active">Overview <span>01</span></button>
       <button data-view="jobs">Job pipeline <span>02</span></button>
       <button data-view="history">Search history <span>↗</span></button>
@@ -31,12 +33,13 @@
     </nav>
     <div class="sidebar-note"><span class="live-dot"></span> Local workspace<p>Discover. Compare.<br>Make your next move.</p><small>Search here. Review applications with your AI.</small></div>
   </aside>
-  <main>
+  <main id="main-content" tabindex="-1">
     <header class="topbar"><span id="breadcrumb">Workspace / Overview</span><div class="top-actions"><span id="sync" role="status">Connecting…</span><button id="refresh" class="quiet">Refresh</button><a class="quiet" href="api/export" download>Export data ↓</a></div></header>
+    <p id="candidate-workspace" class="workspace-banner" role="status"></p>
     <div id="error" role="alert" hidden></div>
     <section class="search-hub" aria-labelledby="search-title">
       <div class="search-heading"><div><div class="eyebrow">DISCOVER YOUR NEXT OPPORTUNITY</div><h1 id="search-title">A new role. A new chapter.</h1><p>Search LinkedIn and Indeed with your AI. Only verified employer-site applications enter the primary lists.</p></div><span class="hub-mark" aria-hidden="true">↗</span></div>
-      <div class="search-field"><label for="search-mode">Search sources</label><select id="search-mode"><option value="primary">LinkedIn + Indeed — required primary portals</option><option value="feeds">Supplementary public feeds — separate, unverified results</option></select></div>
+      <div class="search-field"><label for="search-mode">Search sources</label><select id="search-mode"><option value="primary">Configured primary portals</option><option value="feeds">Supplementary public feeds — separate, unverified results</option></select></div>
       <form id="job-search-form">
         <div class="search-field"><label for="role-input">Job role</label><input id="role-input" name="role" placeholder="e.g. Data Analyst" required maxlength="120" autocomplete="off"></div>
         <div class="search-field"><label for="location-input">Location</label><input id="location-input" name="location" placeholder="City, country, or Remote" required maxlength="120" autocomplete="off"></div>

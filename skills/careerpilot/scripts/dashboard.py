@@ -132,7 +132,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         server = self.server
         action = self.path.removeprefix(f'/{server.token}/api/')
-        if self.path not in {f'/{server.token}/api/{a}' for a in ('search','portal-search','settings','telegram-test','telegram-chats','assistance-retry','assistance-resume','email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo','network-config','network-dnc','daily-config','daily-profile-save','daily-start','daily-decision')}:
+        if self.path not in {f'/{server.token}/api/{a}' for a in ('search','portal-search','settings','telegram-test','telegram-chats','assistance-retry','assistance-resume','email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo','network-config','network-dnc','daily-config','daily-profile-save','daily-start','daily-decision','setup-step')}:
             return self.respond(405, 'This action is not available from this dashboard.')
         if (self.headers.get('Host') != urlsplit(server.origin).netloc
                 or self.headers.get('Origin') != server.origin
@@ -153,7 +153,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 raise ValueError('Request must be an object.')
             if action == 'portal-search':
                 result = Workspace(server.root).mutate(dict(query, op='portal-search-start'))
-            elif action in {'email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo','network-config','network-dnc','daily-config','daily-profile-save','daily-start','daily-decision'}:
+            elif action in {'email-config','email-apply','email-dismiss','answer-save','login-session-start','login-session-complete','handoff-sent','learning-config','learning-propose','learning-approve','learning-undo','network-config','network-dnc','daily-config','daily-profile-save','daily-start','daily-decision','setup-step'}:
                 result = Workspace(server.root).mutate(dict(query, op=action))
             elif action == 'settings':
                 result = Settings(server.root).save(query)

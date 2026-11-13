@@ -6,6 +6,7 @@ import backlog
 import learning
 import networking
 import daily
+import release_tools
 import interviews
 import document_quality
 import application_quality
@@ -20,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-VERSION = '0.13.0'
+VERSION = '1.0.0'
 TERMINAL = {'Submitted', 'Interview', 'Rejected', 'Offer', 'Withdrawn', 'Expired'}
 ACTIVE = {'Selected', 'Preparing', 'Filling', 'Ready for review'}
 
@@ -190,6 +191,10 @@ class Workspace:
 
     def apply(self, state, data):
         op = text(data.get('op'), 'op')
+        if op == 'setup-step':
+            return release_tools.setup(state, data)
+        if op == 'international-config':
+            return release_tools.preferences(state, data)
         if op in interviews.OPS:
             return interviews.apply(self, state, data)
         if op in document_quality.OPS:
@@ -538,9 +543,23 @@ class Workspace:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, type=Path)
+    parser.add_argument('--expect-workspace', type=Path, help='Refuse if this differs from the intended workspace')
     sub = parser.add_subparsers(dest='command', required=True)
     for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests', 'quality', 'interviews']:
         sub.add_parser(name)
+    sub.add_parser('demo')
+    doctor = sub.add_parser('doctor')
+    for capability in ('browser', 'gmail'):
+        doctor.add_argument('--' + capability, choices=['unknown','available','unavailable'], default='unknown')
+    for command in ('backup','full-export','restore','metrics-export'):
+        action = sub.add_parser(command)
+        action.add_argument('--archive', required=True, type=Path)
+        if command in ('backup','full-export'):
+            action.add_argument('--encrypt', action='store_true')
+        if command == 'metrics-export':
+            action.add_argument('--consent', action='store_true')
+    delete = sub.add_parser('secure-delete')
+    delete.add_argument('--confirm-path', required=True)
     dashboard = sub.add_parser('dashboard', help='Serve the live local read-only dashboard')
     dashboard.add_argument('--port', type=int, default=8765)
     dashboard.add_argument('--open', action='store_true', help='Open in the default browser')
@@ -551,7 +570,22 @@ def main():
     args = parser.parse_args()
     try:
         ws = Workspace(args.workspace)
-        if args.command == 'dashboard':
+        if args.expect_workspace is not None:
+            require(ws.root == args.expect_workspace.expanduser().resolve(),
+                    'Wrong workspace. Stop and confirm the intended candidate directory.')
+        if args.command == 'doctor':
+            result = release_tools.doctor(ws, args.browser, args.gmail)
+        elif args.command == 'demo':
+            result = release_tools.demo(ws)
+        elif args.command in ('backup', 'full-export'):
+            result = release_tools.backup(ws, args.archive, args.encrypt)
+        elif args.command == 'restore':
+            result = release_tools.restore(ws, args.archive)
+        elif args.command == 'secure-delete':
+            result = release_tools.delete(ws, args.confirm_path)
+        elif args.command == 'metrics-export':
+            result = release_tools.metrics(ws, args.archive, args.consent)
+        elif args.command == 'dashboard':
             from dashboard import serve
             serve(ws.root, args.port, args.open)
             return 0

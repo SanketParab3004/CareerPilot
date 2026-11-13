@@ -2,7 +2,7 @@
 name: careerpilot
 description: Manage a candidate's job search from a fresh profile through job discovery, fit ranking, tailored resumes, recruiting-contact research, browser-assisted applications, and outcome tracking. Use when the user wants to find or apply for jobs, prepare application materials, or resume an application queue.
 metadata:
-  version: "0.13.0"
+  version: "1.0.0"
 ---
 
 # CareerPilot
@@ -12,6 +12,8 @@ Act as the user's job-search assistant through the host's existing tools. This s
 ## Start or resume
 
 Resolve `scripts/toolkit.py` relative to this skill directory. Use Python 3.10+ and an explicit absolute `--workspace` for every call. Default to `<user's task directory>/job-search-workspace` if no location was chosen; keep candidate data outside the installed skill. Do not import the author's or another toolkit's profile.
+
+For first-run setup, diagnostics, workspace safety and regional preferences, read [setup and release](references/setup.md). Confirm the resolved workspace and candidate before any write or external action. Pass `--expect-workspace` on CLI actions with the independently confirmed directory.
 
 Run `status` first when the workspace exists. Schema 1–5 workspaces migrate with a private backup on first use; stop older helpers first. Read [backlog and recovery](references/backlog.md) before processing blocked or interrupted work. On each new host session, reconcile in-flight jobs before continuing; never replay an uncertain submission. Run `init` for a new workspace. These commands require no AI credentials. Use [state commands](references/state.md) when reading or changing records. All persistent changes go through the helper; never hand-edit its database.
 
@@ -47,7 +49,7 @@ Offer the [local dashboard](references/dashboard.md) for direct role/location se
 
 ## Required job sources
 
-LinkedIn and Indeed are the required primary discovery portals. Use [primary portal searches](references/portal-search.md) for new searches. Exclude LinkedIn Easy Apply and Indeed on-platform applications, including posts with both on-platform and external options. Include only verified employer/ATS applications. If either portal is inaccessible, report blocked/partial coverage; do not silently substitute public feeds. Public feeds are supplementary and require an explicit separate choice.
+LinkedIn and Indeed are the default primary portals. Use the workspace portal preferences when configured. Use [primary portal searches](references/portal-search.md) for new searches. Exclude LinkedIn Easy Apply and Indeed on-platform applications, including posts with both on-platform and external options. Include only verified employer/ATS applications. If either portal is inaccessible, report blocked/partial coverage; do not silently substitute public feeds. Public feeds are supplementary and require an explicit separate choice.
 
 ## Application boundaries
 

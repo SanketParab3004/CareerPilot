@@ -7,9 +7,25 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+def release_files(source):
+    names = (ROOT / 'tools' / 'skill-files.txt').read_text(encoding='utf-8').splitlines()
+    paths = []
+    for name in names:
+        relative = Path(name)
+        path = source / relative
+        if (relative.is_absolute() or '..' in relative.parts or '__pycache__' in relative.parts
+                or relative.suffix not in {'.md', '.py', '.txt', '.js', '.html', '.css', '.yaml'}
+                or not path.is_file() or path.resolve() != path.absolute()):
+            raise ValueError(f'Invalid release member: {name}')
+        paths.append(path)
+    if len(set(paths)) != len(paths):
+        raise ValueError('Duplicate release members')
+    return paths
+
+
 def package(destination):
     source = ROOT / 'skills' / 'careerpilot'
-    paths = sorted(p for p in source.rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc')
+    paths = release_files(source)
     destination = Path(destination).resolve()
     if destination.is_relative_to(source.resolve()):
         raise ValueError('Archive destination must be outside skill source')

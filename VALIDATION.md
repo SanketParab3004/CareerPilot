@@ -184,3 +184,7 @@ documents are unverified and future uploads/checkpoints/submissions need the new
 checks. No manual DB rewrite is needed. The real job-search-workspace was untouched.
 
 Stage 5 validation: 151 synthetic tests passed. Initial fixture run exposed optional-job salary research being gated and a missing score rationale in a fixture. Both were fixed. Live voice, calendar, reminders, and salary research remain host workflows and were not exercised.
+
+## Stage 6 release validation
+
+155 synthetic tests passed on Windows. Codex, Claude and generic installer paths succeeded in temporary directories. Installed demo, doctor and wrong-workspace refusal were exercised. Node syntax check passed. The release ZIP matches the explicit 43-file source manifest, with no workspace data, runtime files or caches. Live connectors, native macOS/Linux keychains, optional archive encryption and mobile visual behavior were not verified.

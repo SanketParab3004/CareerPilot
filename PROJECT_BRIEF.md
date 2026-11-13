@@ -85,3 +85,7 @@ Adds user-file-only connection imports, evidence/confidence-based warm paths, op
 ## Stage 4 — better applications and documents (0.12.0)
 
 Adds portable ATS playbooks, reviewed normalized field memory, failure/recovery history, confirmed field/upload observations, fresh pre-submit comparison and structured receipts. Documents gain claim provenance, requirement coverage, honest keywords, actual-file parse checks, candidate rules/approval, exact-job reuse exceptions, version diffs, truthful positioning variants and recruiter critique. Dashboard views read canonical state; schema 5 preserves existing data with backup-first migration. Semantic/visual judgment and browser execution remain evidenced host responsibilities.
+
+## Stage 6 release
+
+The portable 1.0.0 skill adds guided setup, private workspace recovery, regional configuration and a source allowlist. Live tools remain host capabilities. See COMPATIBILITY.md for verification scope.
