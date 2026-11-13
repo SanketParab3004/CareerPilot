@@ -182,3 +182,5 @@ Schema 5 backs up and migrates on first helper/dashboard use. Stop older process
 first and refresh installed skill copies. Existing jobs/grants/outcomes remain; legacy
 documents are unverified and future uploads/checkpoints/submissions need the new
 checks. No manual DB rewrite is needed. The real job-search-workspace was untouched.
+
+Stage 5 validation: 151 synthetic tests passed. Initial fixture run exposed optional-job salary research being gated and a missing score rationale in a fixture. Both were fixed. Live voice, calendar, reminders, and salary research remain host workflows and were not exercised.

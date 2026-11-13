@@ -31,7 +31,7 @@ def read_state(root):
         if not row:
             raise ValueError('No saved workspace state')
         state = json.loads(row[0])
-        if state.get('schema_version') != 5:
+        if state.get('schema_version') != 6:
             raise ValueError('Unsupported workspace schema')
         return state
     finally:

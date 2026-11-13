@@ -6,6 +6,7 @@ import backlog
 import learning
 import networking
 import daily
+import interviews
 import document_quality
 import application_quality
 import hashlib
@@ -19,7 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-VERSION = '0.12.0'
+VERSION = '0.13.0'
 TERMINAL = {'Submitted', 'Interview', 'Rejected', 'Offer', 'Withdrawn', 'Expired'}
 ACTIVE = {'Selected', 'Preparing', 'Filling', 'Ready for review'}
 
@@ -53,7 +54,7 @@ def file_digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def fresh():
-    return {'schema_version': 5, 'document_quality': document_quality.empty(), 'application_quality': {'fields': {}, 'failures': [], 'playbook_notes': []}, 'networking': networking.empty(), 'daily': daily.empty(), 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
+    return {'schema_version': 6, 'interviews': interviews.empty(), 'document_quality': document_quality.empty(), 'application_quality': {'fields': {}, 'failures': [], 'playbook_notes': []}, 'networking': networking.empty(), 'daily': daily.empty(), 'learning': learning.empty(), 'backlog': backlog.empty(), 'profile': {}, 'profile_revision': 0, 'jobs': {}, 'authorizations': [], 'events': []}
 
 def summary(state):
     counts = {}
@@ -89,10 +90,10 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            if state.get('schema_version') == 5:
+            if state.get('schema_version') == 6:
                 db.rollback()
-                return {'schema_version': 5, 'migrated': False}
-            require(state.get('schema_version') in {1, 2, 3, 4}, 'Unsupported workspace schema')
+                return {'schema_version': 6, 'migrated': False}
+            require(state.get('schema_version') in {1, 2, 3, 4, 5}, 'Unsupported workspace schema')
             old_version = state['schema_version']
             folder = self.root / 'backups'
             folder.mkdir(exist_ok=True)
@@ -116,11 +117,15 @@ class Workspace:
             if old_version <= 3:
                 daily.upgrade(state)
                 state.setdefault('migrations', []).append({'version':4, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
-            document_quality.upgrade(state)
-            state.setdefault('migrations', []).append({'version':5, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            if old_version <= 4:
+                document_quality.upgrade(state)
+                state.setdefault('migrations', []).append({'version':5, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
+            state['interviews'] = interviews.empty()
+            state['schema_version'] = 6
+            state.setdefault('migrations', []).append({'version':6, 'at':utc(), 'backup':backup.relative_to(self.root).as_posix()})
             db.execute('UPDATE state SET value=? WHERE id=1', (json.dumps(state, ensure_ascii=False),))
             db.commit()
-            return {'schema_version':5, 'migrated':True, 'backup':str(backup)}
+            return {'schema_version':6, 'migrated':True, 'backup':str(backup)}
         except Exception:
             db.rollback()
             raise
@@ -133,7 +138,7 @@ class Workspace:
         db = sqlite3.connect(self.db_path)
         try:
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 5, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 6, 'Unsupported workspace schema')
             return state
         finally:
             db.close()
@@ -146,7 +151,7 @@ class Workspace:
         try:
             db.execute('BEGIN IMMEDIATE')
             state = json.loads(db.execute('SELECT value FROM state WHERE id=1').fetchone()[0])
-            require(state.get('schema_version') == 5, 'Unsupported workspace schema')
+            require(state.get('schema_version') == 6, 'Unsupported workspace schema')
             result = self.apply(state, request)
             learning.observe(state, request)
             state['events'].append({'at': utc(), 'op': request['op'], 'job_id': request.get('job_id'), 'result': result})
@@ -185,6 +190,8 @@ class Workspace:
 
     def apply(self, state, data):
         op = text(data.get('op'), 'op')
+        if op in interviews.OPS:
+            return interviews.apply(self, state, data)
         if op in document_quality.OPS:
             return document_quality.apply(self, state, data)
         if op in application_quality.OPS:
@@ -532,7 +539,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, type=Path)
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests', 'quality']:
+    for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests', 'quality', 'interviews']:
         sub.add_parser(name)
     dashboard = sub.add_parser('dashboard', help='Serve the live local read-only dashboard')
     dashboard.add_argument('--port', type=int, default=8765)
@@ -563,7 +570,9 @@ def main():
             result = ws.report()
         else:
             state = ws.read()
-            if args.command == 'quality':
+            if args.command == 'interviews':
+                result = interviews.view(state)
+            elif args.command == 'quality':
                 result = {'documents': document_quality.view(state), 'applications': application_quality.view(state)}
             elif args.command == 'referrals':
                 result = networking.view(state)

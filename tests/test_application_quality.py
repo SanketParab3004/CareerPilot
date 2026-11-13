@@ -237,7 +237,7 @@ class QualityTests(unittest.TestCase):
         with closing(sqlite3.connect(ws.db_path)) as db:self.assertEqual(json.loads(db.execute('SELECT value FROM state').fetchone()[0]),old)
         result=ws.migrate()
         with closing(sqlite3.connect(result['backup'])) as db:self.assertEqual(json.loads(db.execute('SELECT value FROM state').fetchone()[0]),old)
-        new=ws.read();self.assertEqual(new['schema_version'],5);self.assertEqual(new['authorizations'],old['authorizations']);self.assertEqual(new['jobs'],old['jobs']);self.assertEqual(new['learning'],old['learning'])
+        new=ws.read();self.assertEqual(new['schema_version'],6);self.assertEqual(new['authorizations'],old['authorizations']);self.assertEqual(new['jobs'],old['jobs']);self.assertEqual(new['learning'],old['learning'])
         self.assertTrue(new['document_quality']['versions'][dq.key(jid,doc['sha256'])]['legacy']);self.assertFalse(ws.migrate()['migrated'])
 
     def test_import_source_hash_and_profile_changes_invalidate_document(self):
