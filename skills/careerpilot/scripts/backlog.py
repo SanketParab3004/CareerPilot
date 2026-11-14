@@ -20,9 +20,15 @@ def words(value, name):
     need(isinstance(value, str) and value.strip(), name + ' is required')
     return value.strip()
 
+CREDENTIAL = re.compile(r'password|passcode|one.time.code|\botp\b|access.token|secret.key', re.I)
+
 def safe_field(value):
-    need(not re.search(r'password|passcode|one.time.code|\botp\b|access.token|secret.key', value, re.I),
+    need(not CREDENTIAL.search(value),
          'Do not store credentials or verification codes in backlog; use encrypted settings or manual assistance')
+
+def field_key(note):
+    """Field name for a free-text unresolved note; masks credential words so the answer can be confirmed."""
+    return CREDENTIAL.sub('[credential]', note)
 
 def now():
     return datetime.now(timezone.utc)
@@ -81,7 +87,7 @@ def upgrade(state):
         for index, unresolved in enumerate(job.get('checkpoint', {}).get('unresolved', [])):
             qid = 'legacy-question-' + job['id'] + '-' + str(index)
             state['backlog']['questions'][qid] = dict(id=qid, job_id=job['id'],
-                question=str(unresolved), context='legacy:' + job['id'], field=str(unresolved),
+                question=str(unresolved), context='legacy:' + job['id'], field=field_key(str(unresolved)),
                 evidence='Saved unresolved checkpoint field', status='open', reusable=False)
     state['schema_version'] = 2
 
@@ -114,7 +120,7 @@ def checkpoint_questions(state, job):
         if not existing:
             qid = uuid.uuid4().hex[:12]
             state['backlog']['questions'][qid] = dict(id=qid, job_id=job['id'], question=question,
-                field=question, context='job:' + job['id'], status='open', evidence=job['checkpoint']['observation'])
+                field=field_key(question), context='job:' + job['id'], status='open', evidence=job['checkpoint']['observation'])
 
 def queue(state):
     b = state['backlog']

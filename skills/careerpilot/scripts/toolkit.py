@@ -416,7 +416,8 @@ class Workspace:
                     text(answer.get(k), f'answer.{k}')
                 backlog.safe_field(answer['field'])
             for field, pending in job.get('pending_answers', {}).items():
-                require(any(a['field'] == field and a['value'] == pending['value'] and a['source'] == pending['source'] for a in checkpoint['answers']), 'Checkpoint must confirm every pending candidate answer with its source')
+                # field_key also matches answers saved before masking existed.
+                require(any(a['field'] == backlog.field_key(field) and a['value'] == pending['value'] and a['source'] == pending['source'] for a in checkpoint['answers']), 'Checkpoint must confirm every pending candidate answer with its source')
             application_quality.observe_checkpoint(self, state, job, checkpoint)
             job['pending_answers'] = {}
             job['checkpoint'] = dict(checkpoint, recorded_at=utc(), profile_revision=state['profile_revision'])

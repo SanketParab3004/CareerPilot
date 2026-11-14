@@ -148,6 +148,27 @@ class BacklogTests(unittest.TestCase):
         self.inspect(jid,result='uncertain')
         self.assertTrue(self.ws.read()['jobs'][jid]['resume_required'])
 
+    def test_credential_word_in_unresolved_note_can_be_answered(self):
+        note='Sign-in required (email, password, consent to terms)'
+        jid=self.job();self.op('start',job_id=jid);self.checkpoint(jid,unresolved=[note],complete=False)
+        q=next(q for q in self.ws.read()['backlog']['questions'].values() if q['job_id']==jid)
+        self.assertEqual(q['field'],'Sign-in required (email, [credential], consent to terms)')
+        self.op('answer-save',question_id=q['id'],value='Candidate signed in',evidence='Synthetic candidate statement')
+        self.inspect(jid)
+        source=self.ws.read()['jobs'][jid]['pending_answers'][q['field']]['source']
+        with self.assertRaises(ValueError):self.checkpoint(jid,answers=[dict(field='Password',value='Candidate signed in',source=source)])
+        self.checkpoint(jid,answers=[dict(field=q['field'],value='Candidate signed in',source=source)])
+        self.assertEqual(self.op('ready',job_id=jid)['status'],'Ready for review')
+
+    def test_unmasked_pending_answer_from_older_state_can_be_confirmed(self):
+        note='Workday sign-in (password) needed'
+        jid=self.job();self.op('start',job_id=jid)
+        state=self.ws.read();state['jobs'][jid]['pending_answers']={note:dict(value='Signed in',source='candidate answer old')}
+        with closing(sqlite3.connect(self.ws.db_path)) as db:
+            db.execute('UPDATE state SET value=?',(json.dumps(state),));db.commit()
+        self.checkpoint(jid,answers=[dict(field='Workday sign-in ([credential]) needed',value='Signed in',source='candidate answer old')])
+        self.assertEqual(self.ws.read()['jobs'][jid]['pending_answers'],{})
+
     def test_stale_and_wrong_destination_inspections_rejected(self):
         jid=self.job();self.op('interrupt',job_id=jid,evidence='Synthetic crash')
         for changes in [dict(checked_at=clock(-1)),dict(page_url='https://other.invalid/apply'),dict(result='guess')]:
