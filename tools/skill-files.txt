@@ -41,3 +41,5 @@ scripts/release_tools.py
 scripts/requirements-pdf.txt
 scripts/toolkit.py
 references/setup.md
+scripts/parse_job_html.py
+references/low-usage.md

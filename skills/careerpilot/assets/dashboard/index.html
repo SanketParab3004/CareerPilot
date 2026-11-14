@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Search for jobs and review applications in your CareerPilot workspace.">
   <title>CareerPilot · Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
@@ -10,50 +11,46 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <aside class="sidebar">
-    <a class="brand" href="#overview"><span class="brand-mark">C<span>↗</span></span><span>CareerPilot<small>YOUR NEXT CHAPTER</small></span></a>
-    <div class="nav-label">WORKSPACE</div>
+    <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="26" height="26" focusable="false"><path d="M24 21a10 10 0 1 1-10-15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="m12 20 5-10 10-5-5 10z" fill="currentColor"/></svg></span><span>CareerPilot</span></a>
+    <details class="workspace-nav" open>
+    <summary>Workspace navigation</summary>
     <nav aria-label="Main navigation">
-      <button data-view="setup">Guided setup</button>
-      <button data-view="overview" class="active">Overview <span>01</span></button>
-      <button data-view="jobs">Job pipeline <span>02</span></button>
-      <button data-view="history">Search history <span>↗</span></button>
-      <button data-view="profile">My profile <span>03</span></button>
-      <button data-view="quality">Application quality <span>↗</span></button>
-      <button data-view="documents">Documents <span>04</span></button>
-      <button data-view="contacts">Contacts & drafts <span>05</span></button>
-      <button data-view="settings">Accounts & alerts <span>07</span></button>
-      <button data-view="referrals">Referrals <span>↗</span></button>
-      <button data-view="daily">Daily digest <span>↗</span></button>
-      <button data-view="analytics">Funnel analytics <span>↗</span></button>
-      <button data-view="weekly">Weekly review <span>↗</span></button>
-      <button data-view="queue">Action queue <span>↗</span></button>
-      <button data-view="assistance">Assistance <span>08</span></button>
-      <button data-view="email">Email updates <span>09</span></button>
-      <button data-view="activity">Activity <span>06</span></button>
+      <button data-view="overview" class="active">Overview </button>
+      <button data-view="jobs">Job pipeline </button>
+      <button data-view="queue">Action queue </button>
+      <details class="nav-group"><summary>Search</summary><button data-view="history">Search history </button><button data-view="daily">Daily digest </button></details>
+      <details class="nav-group"><summary>Application tools</summary><button data-view="quality">Application quality </button><button data-view="documents">Documents </button><button data-view="contacts">Contacts & drafts </button><button data-view="referrals">Referrals </button><button data-view="assistance">Assistance </button></details>
+      <details class="nav-group"><summary>Progress</summary><button data-view="analytics">Funnel analytics </button><button data-view="weekly">Weekly review </button><button data-view="email">Email updates </button><button data-view="activity">Activity </button></details>
+      <details class="nav-group"><summary>Settings</summary><button data-view="setup">Guided setup</button><button data-view="profile">My profile </button><button data-view="settings">Accounts & alerts </button></details>
     </nav>
-    <div class="sidebar-note"><span class="live-dot"></span> Local workspace<p>Discover. Compare.<br>Make your next move.</p><small>Search here. Review applications with your AI.</small></div>
+    </details>
+    <div class="sidebar-note">Local workspace</div>
   </aside>
   <main id="main-content" tabindex="-1">
-    <header class="topbar"><span id="breadcrumb">Workspace / Overview</span><div class="top-actions"><span id="sync" role="status">Connecting…</span><button id="refresh" class="quiet">Refresh</button><a class="quiet" href="api/export" download>Export data ↓</a></div></header>
+    <header class="topbar"><span id="breadcrumb">Workspace / Overview</span><div class="top-actions"><span id="sync" role="status">Connecting…</span><button id="refresh" class="quiet">Refresh</button><a class="quiet" href="api/export" download>Export data</a></div></header>
     <p id="candidate-workspace" class="workspace-banner" role="status"></p>
     <div id="error" role="alert" hidden></div>
+    <div class="workspace-desk">
+    <section id="overview-priority" aria-label="Needs your attention" hidden></section>
     <section class="search-hub" aria-labelledby="search-title">
-      <div class="search-heading"><div><div class="eyebrow">DISCOVER YOUR NEXT OPPORTUNITY</div><h1 id="search-title">A new role. A new chapter.</h1><p>Search LinkedIn and Indeed with your AI. Only verified employer-site applications enter the primary lists.</p></div><span class="hub-mark" aria-hidden="true">↗</span></div>
-      <div class="search-field"><label for="search-mode">Search sources</label><select id="search-mode"><option value="primary">Configured primary portals</option><option value="feeds">Supplementary public feeds — separate, unverified results</option></select></div>
+      <div class="search-heading"><div><h1 id="search-title">Search for jobs</h1><p>Choose a role and location, then run the search in Claude or Codex.</p></div></div>
+      <div class="search-field"><label for="search-mode">Search sources</label><select id="search-mode"><option value="primary">Configured primary portals</option><option value="feeds">Supplementary public feeds (separate, unverified results)</option></select></div>
       <form id="job-search-form">
         <div class="search-field"><label for="role-input">Job role</label><input id="role-input" name="role" placeholder="e.g. Data Analyst" required maxlength="120" autocomplete="off"></div>
         <div class="search-field"><label for="location-input">Location</label><input id="location-input" name="location" placeholder="City, country, or Remote" required maxlength="120" autocomplete="off"></div>
         <div class="search-field"><label for="posted-input">Posted within</label><select id="posted-input" name="posted_within"><option value="any">Any time</option><option value="1">Last 24 hours</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></div>
-        <button id="start-search" class="primary" type="submit">Search with AI <span aria-hidden="true">↗</span></button>
+        <button id="start-search" class="primary" type="submit">Search with AI</button>
       </form>
       <div class="search-options"><label><input id="unknown-dates" type="checkbox"> Include unknown posting dates with a date filter</label><span>Low-scoring matches stay in your results.</span></div>
       <div id="search-feedback" role="status" aria-live="polite"></div>
-      <details class="source-info"><summary>LinkedIn + Indeed required · External applications only</summary><p>The primary search creates a saved request for your connected AI/browser. Copy its prompt into your agent chat to run it. The dashboard does not directly scrape LinkedIn or Indeed. Both sources must be checked; blocked access is reported, never replaced silently by another source.</p><p>Exclude LinkedIn Easy Apply and Indeed Apply / Easily apply / Apply with Indeed. A posting enters the primary list only after the agent verifies the employer or ATS destination and confirms no on-platform application option. Unverified routes are excluded pending verification. All qualifying matches remain ranked, including low scores.</p><p>Supplementary search runs Remotive, Jobicy and Arbeitnow public feeds directly. Those results are separate and do not satisfy the required primary search or external-application verification. Remotive is delayed by 24 hours and cached 6 hours. Jobicy covers the last 7 days. Jobicy and Arbeitnow are cached 1 hour and capped at 5 pages each. Missing posting dates stay unknown.</p></details>
+      <button id="resume-search" type="button" hidden>Copy search request</button>
+      <details class="source-info"><summary>Primary portals and application rules</summary><p>The primary search creates a saved request for your connected AI/browser. Copy its prompt into your agent chat to run it. The dashboard does not directly scrape LinkedIn or Indeed. Each configured source must be checked; blocked access is reported, never replaced silently by another source.</p><p>Exclude LinkedIn Easy Apply and Indeed Apply / Easily apply / Apply with Indeed. A posting enters the primary list only after the agent verifies the employer or ATS destination and confirms no on-platform application option. Unverified routes are excluded pending verification. All qualifying matches remain ranked, including low scores.</p><p>Supplementary search runs Remotive, Jobicy and Arbeitnow public feeds directly. Those results are separate and do not satisfy the required primary search or external-application verification. Remotive is delayed by 24 hours and cached 6 hours. Jobicy covers the last 7 days. Jobicy and Arbeitnow are cached 1 hour and capped at 5 pages each. Missing posting dates stay unknown.</p></details>
     </section>
+    </div>
     <div id="content" aria-live="off"><div class="empty">Loading your workspace…</div></div>
     <footer><span id="workspace"></span><span>Updates every 5 seconds while this tab is open</span></footer>
   </main>
-  <dialog id="detail" aria-labelledby="detail-title"><div class="dialog-top"><span>APPLICATION DETAILS</span><button id="close-detail" class="quiet" aria-label="Close application details">Close ×</button></div><div id="detail-content"></div></dialog>
+  <dialog id="detail" aria-labelledby="detail-title"><div class="dialog-top"><span>Application details</span><button id="close-detail" class="quiet" aria-label="Close application details">Close ×</button></div><div id="detail-content"></div></dialog>
   <dialog id="prompt-dialog" aria-labelledby="prompt-title"><h2 id="prompt-title">Continue with your AI</h2><p>Copy this request into your Codex, Claude Code, or compatible agent chat. This dashboard does not start the agent.</p><label for="prompt-text">Request</label><textarea id="prompt-text" readonly rows="5"></textarea><div class="top-actions"><button id="copy-prompt" class="primary">Copy request</button><button id="close-prompt" class="quiet">Close</button></div><p id="copy-status" role="status"></p></dialog>
 </body>
 </html>

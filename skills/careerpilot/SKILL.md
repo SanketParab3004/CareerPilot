@@ -66,3 +66,5 @@ Before preparing new applications, read `guidance` for candidate-approved adjust
 ## Completion
 
 Report what actually happened: prepared, needs attention, ready for review, submitted with evidence, or submission uncertain. Include links to the user's documents/report and the smallest actionable list of blockers. Explicitly distinguish simulated checks from live employer applications. Do not send outreach merely because the user authorized application submissions.
+`portal-search.md` also documents optional offline parsing of saved employer-page HTML with Scrapling. Use it only for extraction; normal verification and source coverage still apply.
+`low-usage.md` is the workflow to read when the candidate asks for low usage, fewer tool calls, or a lean run. Apply its search and preparation budgets without waiving verification or authorization.
