@@ -27,6 +27,9 @@ Omit unknown facts. Store relevant applicant answers only when volunteered/confi
 
 ## Tailor documents
 
+Follow [resume tailoring](resume-tailoring.md) for evidence selection, writing and
+review, then [document quality](document-quality.md) for final-file verification.
+
 1. Read the selected posting and the current profile. Extract essential requirements and compare them with sourced experience.
 2. Create a resume using only supported skills, titles, dates and achievements. Rearrange emphasis for the role without changing facts. Keep genuine gaps visible.
 3. Write a specific cover letter if requested or required. Connect the user's experience to the role; do not fabricate enthusiasm, company knowledge, or contacts.

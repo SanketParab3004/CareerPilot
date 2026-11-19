@@ -188,3 +188,25 @@ Stage 5 validation: 151 synthetic tests passed. Initial fixture run exposed opti
 ## Stage 6 release validation
 
 155 synthetic tests passed on Windows. Codex, Claude and generic installer paths succeeded in temporary directories. Installed demo, doctor and wrong-workspace refusal were exercised. Node syntax check passed. The release ZIP matches the explicit 43-file source manifest, with no workspace data, runtime files or caches. Live connectors, native macOS/Linux keychains, optional archive encryption and mobile visual behavior were not verified.
+
+## Resume-tailoring refinement — November 19, 2026
+
+`python -m unittest discover -s tests -v`: 160 tests passed, zero failures or skips.
+New synthetic checks cover literal skills (including C++, C#, .NET and Unicode),
+whitespace normalization, false substring matches at all three evidence surfaces,
+and rollback preserving the previous approved review after rejected verification.
+Existing migration, evidence, page-limit, approval and source-tampering tests passed.
+No schema or persisted record shape changed, so no new migration is needed.
+
+Initial run: three subcase errors in the new test due to a missing synthetic
+freshness-record (ValueError: Recheck live posting and application route; record
+freshness before spending effort); the fixture now supplies that record. One existing
+dashboard test, test_search_post_validates_body_and_has_no_submit_api, raised
+ConnectionAbortedError [WinError 10053]. It passed on the full rerun with no production
+change to that path. Final run had no errors.
+
+Writing quality remains a host responsibility. These checks do not measure interview
+conversion or prove a model obeys every writing instruction. Real-world review should
+compare an original and tailored resume against the same complete posting, verify
+claims with the candidate, and inspect the actual PDF/DOCX on the intended host.
+No personal workspace, job site, employer, Gmail or Telegram was used for validation.

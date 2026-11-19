@@ -26,7 +26,7 @@ For a new candidate, offer **Import resume / LinkedIn profile or export / Indeed
 | Set up or update profile | [Profile and documents](references/profile-and-documents.md) | Fresh structured facts and reusable answers |
 | Import resume, LinkedIn or Indeed data | [Profile import](references/profile-import.md) | Source-linked facts, conflict review, confirmed profile |
 | Find jobs, evaluate matches | [Discovery and ranking](references/discovery.md) | Deduplicated postings, evidence and fit assessments |
-| Tailor, verify or review documents | [Document quality](references/document-quality.md) | Verified documents attached to the selected job |
+| Tailor, verify or review documents | [Resume tailoring](references/resume-tailoring.md) and [Document quality](references/document-quality.md) | Verified documents attached to the selected job |
 | Save account details, configure phone alerts | [Accounts and assistance](references/accounts-and-assistance.md) | Encrypted site-specific credentials, signup defaults, Telegram alerts |
 | Clear blockers, batch answers, login sittings, recover forms | [Backlog and recovery](references/backlog.md) | Prioritized action queue, safe live inspection, deadlines and personal-send handoffs |
 | Fill, apply, resume queue | [Application quality](references/application-quality.md) | Filled forms, paused exceptions, review or confirmed submission |

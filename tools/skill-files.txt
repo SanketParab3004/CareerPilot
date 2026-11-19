@@ -43,3 +43,4 @@ scripts/toolkit.py
 references/setup.md
 scripts/parse_job_html.py
 references/low-usage.md
+references/resume-tailoring.md

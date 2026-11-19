@@ -89,3 +89,12 @@ Adds portable ATS playbooks, reviewed normalized field memory, failure/recovery 
 ## Stage 6 release
 
 The portable 1.0.0 skill adds guided setup, private workspace recovery, regional configuration and a source allowlist. Live tools remain host capabilities. See COMPATIBILITY.md for verification scope.
+
+## Resume-tailoring refinement — November 19, 2026
+
+Extends existing document gates with a portable authoring workflow: employer-priority
+mapping, evidence selection, truthful achievement bullets, explicit gaps, candidate
+length preferences and bounded reader review. Literal keyword validation distinguishes
+Java from JavaScript and C from C++/C#. Existing record shapes, candidate preferences,
+approvals and migrations are unchanged. No model client, mandatory extra model calls,
+new personal state or promise of ATS/interview success is introduced.

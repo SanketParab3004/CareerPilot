@@ -35,6 +35,17 @@ Examples:
 
 > Show my application progress and draft a message to a verified recruiting contact for this role.
 
+## Tailoring resumes
+
+Ask: "Tailor my resume for this saved job. Show the strongest evidence, important gaps
+and changes, then prepare the final file for my review." Add a one-page preference
+only when you want it. CareerPilot maps the complete posting to confirmed experience,
+prioritizes relevant achievements, asks focused questions about missing evidence and
+reviews the actual final file. Requirement coverage is explained, not presented as an
+ATS pass rate. See [the writing workflow](skills/careerpilot/references/resume-tailoring.md).
+The host model still authors and judges the writing; improved interview rates have
+not been established by automated tests.
+
 ## What works in this release
 
 - Resume import (PDF, DOCX, TXT/MD), LinkedIn professional CSVs/ZIPs, and selected Indeed/account export files (PDF/DOCX/TXT/MD/CSV/JSON).
