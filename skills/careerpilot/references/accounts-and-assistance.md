@@ -1,5 +1,8 @@
 # Accounts and assistance
 
+For automatic login, signup and separately authorized Gmail activation, follow
+[account access](account-access.md).
+
 Open the dashboard → **Accounts & alerts**. This is the preferred setup path: do not ask for passwords or bot tokens in agent chat, shell arguments, request JSON files, logs, or profile/checkpoint data.
 
 Use `python <skill>/scripts/toolkit.py --workspace <private-workspace> accounts` to inspect saved defaults, site permissions and notification configuration without revealing passwords or the bot token.
@@ -10,7 +13,7 @@ Save the candidate's name, email, phone, city and country. These are signup defa
 
 Save existing site passwords in the dashboard. For a new signup, leaving password blank generates and persists a unique 28-character password on the first authorized credential fill. A password generated for a failed signup remains saved for retries; do not assume the account was created until the site confirms it. Site-specific password rules may require the user to replace that password in the dashboard. Existing-account login requires its real password, not a newly generated one.
 
-Private settings use Windows user-scoped DPAPI encryption in `private-settings.sqlite3`, outside canonical state and exports. They are tied to the Windows account/computer, not a portable backup. Other processes running as the same Windows user can decrypt them. Other operating systems currently use browser password-manager autofill/manual assistance; there is no plaintext fallback.
+Private settings use Windows user-scoped DPAPI encryption in `private-settings.sqlite3`, outside canonical state and exports. They are tied to the Windows account/computer, not a portable backup. Other processes running as the same Windows user can decrypt them. On macOS/Linux, the optional native keychain backend requires keyring and cryptography; otherwise use browser password-manager autofill/manual assistance. There is no plaintext fallback.
 
 ## Browser handoff
 

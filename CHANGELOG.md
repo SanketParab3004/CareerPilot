@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Account-access workflow with persistent login/signup intent, separate Gmail activation
+  permissions, exact-message checks, bounded attempts and recovery without automatic replay.
+- Accounts & alerts exposes mailbox/sender/destination consent. Host tools perform the
+  actual activation; CAPTCHA/MFA and unclear results still need assistance.
+- Private settings schema 2 creates an encrypted backup before upgrading on first write.
+  Canonical workspace schema is unchanged. Stop older helpers before updating; existing
+  login/signup permissions stay intact and verification is off until explicitly enabled.
+
 - Stronger resume-tailoring workflow with evidence-first achievement selection,
   employer priorities, focused questions and an explained final review.
 - Literal keyword checks reject misleading substring matches in the posting,

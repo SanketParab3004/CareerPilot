@@ -98,3 +98,12 @@ length preferences and bounded reader review. Literal keyword validation disting
 Java from JavaScript and C from C++/C#. Existing record shapes, candidate preferences,
 approvals and migrations are unchanged. No model client, mandatory extra model calls,
 new personal state or promise of ATS/interview success is introduced.
+
+## Account workflow — November 19, 2026
+
+Adds durable login/signup/activation attempts and separate Gmail verification consent
+in Accounts & alerts. The host executes approved browser and mail actions; the helper
+validates exact mailbox, sender, destination, recency and message replay boundaries.
+Private settings schema 2 migrates with an encrypted SQLite backup before writing;
+canonical workspace schema remains 6. No stored OTPs or activation URLs, model API,
+mail client, silent schedule or change to application submission authorization.

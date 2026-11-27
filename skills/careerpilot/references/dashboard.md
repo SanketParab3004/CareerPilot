@@ -12,8 +12,13 @@ python "SKILL_DIR/scripts/toolkit.py" --workspace "WORKSPACE" dashboard --open
 
 On Windows, the repository's `Open Dashboard.cmd` launches the default `job-search-workspace` and browser. An optional first argument selects another workspace. It initializes an empty workspace if absent; it does not import candidate data.
 
+The dashboard uses dark glass-style panels, mint actions, colored summary cards and consistent line icons. Today shows application counts, the three highest-priority decisions and up to four recorded action deadlines, ordered earliest first. Missing deadlines remain unknown. The full queue remains available through Action queue. Search jobs has its own screen; Today and Jobs no longer repeat the search form. Jobs includes stage filters, and selecting a job opens a side inspector on desktop while keeping the filtered list visible. On smaller screens the inspector is a modal. Close it with Escape or Close; navigating to another screen closes it too.
+
+The candidate name stays visible; expand the workspace disclosure to check its full path. On smaller screens, open Browse workspace to navigate; choosing a destination closes the menu. Keyboard focus is visible and reduced-motion preferences disable transitions. All fonts are local.
+
 Views:
-- Overview: counts, recent jobs, decisions needing attention, and setup progress.
+- Today: counts, recent jobs, decisions needing attention, recorded deadlines and setup progress.
+- Search jobs: role, location, posting window and source selection.
 - Job pipeline: all role candidates with ordinal rank, explained relevance score, source link, posting date, date/score/status sorting and filters, and application details. Low scores are visible by default.
 - Search history: a separate dated result snapshot for each search, with its role, location, date range, start/completion time, source fetch timestamps and coverage.
 - Profile: confirmed facts, source provenance, and import change reviews.
@@ -75,3 +80,26 @@ A fresh passed pre-submit-check is required before submit-begin; submitted/resol
 confirmation references structured evidence. [Site playbooks](site-playbooks.md) guide
 bounded recovery without claiming live compatibility. Application quality in the
 dashboard shows private history and failures; it has no new execution endpoints.
+
+
+## Responsive layout
+
+Below 960px, navigation collapses into Browse workspace and forms stack. Below 700px, job rows become labeled cards with all five fields preserved. Summary cards use two columns on phones and intermediate widths. Detailed analytics retain horizontal scrolling within their table area.
+
+The job inspector uses a side panel from 1400px and a modal below that width. Resizing an open inspector switches modes without discarding the selected job, scroll position or focused control. Touch controls have at least 44px targets; coarse-pointer buttons use 48px. Input text is 16px on mobile to avoid small-field zoom.
+
+### Account activation permission
+
+Accounts & alerts includes **Verify new accounts with Gmail**: exact career origin,
+mailbox, trusted sender addresses and optional additional HTTPS verification origins.
+Saving this permission does not connect Gmail or start a browser agent. Use the host
+[account-access workflow](account-access.md) for bounded login/signup and activation.
+Existing application submission approvals remain separate.
+
+### Windows launcher port access
+
+Open Dashboard.cmd uses `dashboard --port 0 --open`, allowing the operating system
+to select an available loopback port instead of requiring port 8765. The browser
+opens the actual selected address. For a manual launch, add `--port 0` when a fixed
+port is reserved, busy or denied. If even an available port is denied, investigate
+local security policy; do not disable firewall protection or request elevation by default.

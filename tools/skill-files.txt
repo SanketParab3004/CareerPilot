@@ -34,6 +34,7 @@ scripts/import_profile.py
 scripts/interviews.py
 scripts/job_search.py
 scripts/learning.py
+scripts/market.py
 scripts/networking.py
 scripts/portal_search.py
 scripts/private_settings.py
@@ -44,3 +45,5 @@ references/setup.md
 scripts/parse_job_html.py
 references/low-usage.md
 references/resume-tailoring.md
+scripts/account_flow.py
+references/account-access.md

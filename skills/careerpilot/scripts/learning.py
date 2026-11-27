@@ -8,7 +8,8 @@ from datetime import datetime, timedelta, timezone
 from statistics import median
 
 OPS = {'learning-attribution', 'learning-config', 'learning-outcome', 'learning-rejection',
-       'learning-propose', 'learning-approve', 'learning-undo', 'learning-touch'}
+       'learning-propose', 'learning-approve', 'learning-undo', 'learning-touch', 'learning-edit'}
+EDIT_KINDS = {'resume', 'cover_letter', 'answer', 'message', 'other'}
 CONTEXT = {'role_family', 'seniority', 'tailoring_approach', 'ats', 'referral_used', 'outreach_used'}
 FACTORS = ('source', 'role_family', 'seniority', 'fit_score', 'document_versions',
            'tailoring_approach', 'posting_age_days', 'time_to_apply_minutes', 'ats', 'referral_used', 'outreach_used', 'positioning_variant')
@@ -42,7 +43,7 @@ def date(value):
 
 def empty():
     return {'config': {'minimum_sample':20, 'observation_days':14, 'stale_days':14, 'silence_days':45},
-            'applications':{}, 'proposals':{}, 'revision':0}
+            'applications':{}, 'proposals':{}, 'revision':0, 'edits':[]}
 
 def record(state, jid):
     return state['learning']['applications'].setdefault(jid, {'job_id':jid, 'confirmed':False,
@@ -257,6 +258,12 @@ def active(state):
 def guidance(state):
     return [dict(proposal_id=p['id'],**p['suggestion']) for p in active(state) if p['suggestion']['kind']=='tailoring']
 
+def edits(state, limit=25):
+    """Candidate corrections to drafts, newest first, so future drafts follow them."""
+    items=state['learning'].get('edits',[])
+    return dict(recent=items[::-1][:limit],counts=dict(Counter(e['document'] for e in items)),total=len(items),
+        note='Candidate-made changes to drafts. Follow the stated reasons in new drafts; never use them to add unverified claims.')
+
 def ranking_adjustment(state, job):
     total=0; evidence=[]
     if state['learning']['applications'].get(job['id'],{}).get('confirmed') or job['status'] in FINAL | {'Submitting','Submission uncertain'}:
@@ -331,7 +338,17 @@ def apply(state, d):
             p.update(status='undone',undone_at=now().isoformat(),undo_instruction=evidence)
         learning['revision']+=1
         return {'proposal_id':p['id'],'status':p['status'],'effective':'Future recommendations only; historical snapshots and permissions unchanged'}
-    jid=d.get('job_id');need(jid in state['jobs'],'Unknown job_id');job=state['jobs'][jid];app=record(state,jid)
+    jid=d.get('job_id');need(jid in state['jobs'],'Unknown job_id');job=state['jobs'][jid]
+    if op=='learning-edit':
+        need(d.get('document') in EDIT_KINDS,'Choose document: '+', '.join(sorted(EDIT_KINDS)))
+        before=text(d.get('before'),'draft text before the candidate edit');after=text(d.get('after'),'text after the candidate edit')
+        need(before!=after,'Before and after are identical; nothing was edited')
+        reason=text(d['reason'],'candidate reason') if d.get('reason') is not None else None
+        need(d.get('candidate_made') is True,'Record only changes the candidate made or explicitly asked for')
+        edit=dict(id=uuid.uuid4().hex[:12],job_id=jid,document=d['document'],before=before,after=after,reason=reason,recorded_at=now().isoformat())
+        learning.setdefault('edits',[]).append(edit)
+        return {'edit_id':edit['id'],'total_edits':len(learning['edits'])}
+    app=record(state,jid)
     if op=='learning-touch':
         need(d.get('kind') in {'referral','outreach'},'Choose referral or outreach')
         touch=dict(id=text(d.get('event_id'),'stable source event ID'),kind=d['kind'],occurred_at=date(d.get('occurred_at')),evidence=text(d.get('evidence'),'evidence that this actually happened'))

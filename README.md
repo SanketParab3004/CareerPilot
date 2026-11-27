@@ -191,3 +191,16 @@ Stage 5 adds private interview and offer records. See [interviews and offers](sk
 ## CareerPilot 1.0.0
 
 [Quickstart and private workspace commands](skills/careerpilot/references/setup.md) · [Compatibility](COMPATIBILITY.md) · [Upgrade](UPGRADE.md) · [Changelog](CHANGELOG.md)
+
+## Account access and activation
+
+In **Accounts & alerts**, save the default signup email and approve exact career sites
+for login/signup. New accounts can use a generated, encrypted, site-specific password.
+The separate **Verify new accounts with Gmail** form enables activation for an exact
+mailbox, trusted sender addresses and HTTPS destinations. The host checks live results,
+reads only matching recent activation mail, verifies the account and resumes the job.
+Generic login errors never trigger signup; ambiguous activation is never replayed.
+CAPTCHA, MFA, unsupported secret handling and missing permissions use Assistance.
+See [account access](skills/careerpilot/references/account-access.md). This is a host
+workflow, not a Gmail client or background service; application submit permission stays
+separate. Refresh installed skills or re-upload the newly built ZIP to use it.

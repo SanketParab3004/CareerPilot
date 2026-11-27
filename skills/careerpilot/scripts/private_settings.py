@@ -7,6 +7,7 @@ import re
 import secrets
 import sqlite3
 import string
+import uuid
 from ctypes import wintypes
 from urllib.parse import urlsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler
@@ -118,6 +119,21 @@ class Settings:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT value FROM private WHERE id=1').fetchone()
             data = json.loads(self.crypt(row[0], True)) if row else {'signup': {}, 'sites': {}, 'telegram': {}}
+            version = data.get('schema_version', 1)
+            if type(version) is not int or version not in (1, 2):
+                raise ValueError('Unsupported private settings schema.')
+            if version == 1:
+                if row:
+                    folder = self.path.parent / 'backups'
+                    folder.mkdir(exist_ok=True)
+                    backup = folder / ('private-schema-1-' + uuid.uuid4().hex + '.sqlite3')
+                    with closing(sqlite3.connect(self.path.as_uri() + '?mode=ro', uri=True)) as source:
+                        with closing(sqlite3.connect(backup)) as target:
+                            source.backup(target)
+                            if target.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+                                raise ValueError('Private settings backup failed.')
+                data['schema_version'] = 2
+                data['account_flows'] = {}
             update(data)
             db.execute('INSERT OR REPLACE INTO private VALUES(1,?)', (self.crypt(json.dumps(data).encode()),))
             db.commit()
@@ -150,8 +166,14 @@ class Settings:
                 password = request.get('password') or previous.get('password', '')
                 if not isinstance(password, str) or len(password) > 1024:
                     raise ValueError('Invalid password.')
-                data['sites'][origin] = {'username': str(request.get('username', '')).strip()[:200],
+                data['sites'][origin] = {**previous, 'username': str(request.get('username', '')).strip()[:200],
                     'password': password, 'allow_login': request['allow_login'], 'allow_signup': request['allow_signup']}
+            elif kind == 'verification':
+                from account_flow import verification_policy
+                origin = site_origin(request.get('url', ''))
+                if origin not in data['sites']:
+                    raise ValueError('Approve the career site first.')
+                data['sites'][origin]['verification'] = verification_policy(request, origin)
             elif kind == 'telegram':
                 token = request.get('token') or data['telegram'].get('token', '')
                 chat = str(request.get('chat_id', '')).strip()
