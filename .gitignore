@@ -22,3 +22,8 @@ job-search-workspace/
 # Previous installation names remain private during migration.
 .agents/skills/ai-job-toolkit/
 .claude/skills/ai-job-toolkit/
+
+# Generated tool output
+.hallmark/
+brag-output/
+graphify-out/

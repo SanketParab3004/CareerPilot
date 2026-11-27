@@ -1,206 +1,168 @@
 # CareerPilot
 
-Your AI companion from job discovery to application.
+**An AI job-search assistant that runs inside the AI agent you already use (Claude Code or Codex).**
 
-An installable **Agent Skill** for a personal job search: fresh profile, job discovery, fit assessments, tailored documents, recruiting contacts, browser applications and tracking. Version 0.12.0.
+You tell it what jobs you want. It finds them, ranks how well you fit, writes a resume tailored to each one, fills in the application forms, and tracks every reply. It stops before **Submit** so you stay in control.
 
-The AI agent you already use supplies the reasoning and tools. The canonical package is **`skills/careerpilot/`**. It includes `SKILL.md`, focused workflow references, a standard-library Python state helper and Codex display metadata. It has no model API dependency and includes no personal profile.
+Everything stays on your computer. There's no account, no subscription and no API key.
 
-CareerPilot was previously named AI Job Toolkit. The skill command is now `careerpilot`; existing `job-search-workspace` folders and their `toolkit.sqlite3` database remain compatible. Open the same workspace to continue an existing search. The project folder and GitHub repository URL can retain their existing names.
+---
 
-## Install and use
+## What it does
 
-Python 3.10+ is needed for saved state. From this repository, install into a project:
+| Step | What CareerPilot does for you |
+|---|---|
+| 1. **Build your profile** | Reads your resume (PDF, Word, text) or LinkedIn export and shows you the profile before saving it. |
+| 2. **Find jobs** | Searches LinkedIn and Indeed for jobs that apply on the employer's own site, skips Easy Apply, and removes duplicates and reposts. |
+| 3. **Rank your fit** | Scores each job against your profile and explains the strengths and gaps. |
+| 4. **Tailor your resume** | Writes a resume and cover letter for each job using only facts from your profile, never invented ones, then checks the final file. |
+| 5. **Fill applications** | Fills the employer's form in your browser and pauses at Review. You press Submit. |
+| 6. **Track replies** | Reads job emails in Gmail (read-only) and updates each application: interview, rejection, offer. |
+| 7. **Learn what works** | Shows which roles, sources and resume versions get responses, plus the skills and pay in your target jobs. |
+| 8. **Prepare for interviews** | Builds a story bank from your real experience and runs practice rounds. |
 
-```powershell
-python tools/install_skill.py --host codex --project "D:\path\to\your\workspace"
-python tools/install_skill.py --host claude --project "D:\path\to\your\workspace"
+It also has a **local dashboard** in your browser, **referral matching** from your LinkedIn connections, a **daily top 5** of new jobs, and optional **Telegram alerts** when it needs you (for example a CAPTCHA or login).
+
+### What it won't do
+
+- **Submit without your OK.** Submitting needs your approval for each job, or a batch you approve explicitly.
+- **Make things up.** Every resume claim must trace back to your profile.
+- **Solve CAPTCHAs, create logins on its own, or send messages for you** without your approval.
+- **Work without an AI agent.** CareerPilot is a set of instructions plus a small Python helper. The AI agent does the thinking and the browsing.
+
+---
+
+## What you need
+
+- **An AI agent that supports skills:** [Claude Code](https://code.claude.com/docs/en/skills) or [Codex](https://learn.chatgpt.com/docs/build-skills).
+- **Python 3.10 or newer** ([download](https://www.python.org/downloads/)). Check with `python --version`.
+- **For filling applications:** a browser tool connected to your agent, such as Claude in Chrome.
+- **Optional:** Gmail connected to your agent (to track replies) and a Telegram bot (for phone alerts).
+
+---
+
+## Install (about 2 minutes)
+
+**1. Download the project**
+
+```bash
+git clone https://github.com/SanketParab3004/CareerPilot.git
+cd CareerPilot
 ```
 
-For all local projects, use `--user` instead of `--project ...`. Use `--dry-run` to print the destination without writing. The installer is idempotent for identical files and refuses to overwrite a different existing skill. The full folder can also be copied into another agent's documented skill location.
+Or click **Code → Download ZIP** on GitHub and unzip it.
 
-- Codex: invoke **`$careerpilot`**.
-- Claude Code: invoke **`/careerpilot`**.
-- Local models: load the skill in a compatible agent runtime with file, Python and browser tools. A bare model endpoint does not supply those capabilities.
+**2. Install the skill into your agent**
 
-Examples:
+For Claude Code:
+```bash
+python tools/install_skill.py --host claude --user
+```
 
-> Use this skill to create a fresh profile and find suitable jobs.
+For Codex:
+```bash
+python tools/install_skill.py --host codex --user
+```
 
-> Import my resume and LinkedIn export, show me conflicting facts, and let me review the profile before saving it.
+`--user` makes it available in all your projects. Use `--project "PATH"` to install it in one folder only. Add `--dry-run` to see where it would go without installing.
 
-> Help me get my Indeed resume or profile export into the toolkit.
+**3. Start it**
 
-> Prepare applications for these three roles. Fill the forms, pause anything that needs my input, and leave Submit to me.
+Open your agent and type:
 
-> Show my application progress and draft a message to a verified recruiting contact for this role.
+- Claude Code: **`/careerpilot`**
+- Codex: **`$careerpilot`**
 
-## Tailoring resumes
+On first run it creates a private `job-search-workspace` folder in your current folder (or anywhere you tell it), confirms the location with you, then walks you through setup.
 
-Ask: "Tailor my resume for this saved job. Show the strongest evidence, important gaps
-and changes, then prepare the final file for my review." Add a one-page preference
-only when you want it. CareerPilot maps the complete posting to confirmed experience,
-prioritizes relevant achievements, asks focused questions about missing evidence and
-reviews the actual final file. Requirement coverage is explained, not presented as an
-ATS pass rate. See [the writing workflow](skills/careerpilot/references/resume-tailoring.md).
-The host model still authors and judges the writing; improved interview rates have
-not been established by automated tests.
+---
 
-## What works in this release
+## Using it
 
-- Resume import (PDF, DOCX, TXT/MD), LinkedIn professional CSVs/ZIPs, and selected Indeed/account export files (PDF/DOCX/TXT/MD/CSV/JSON).
-- Local source extraction, provenance, profile change previews, and confirmation before applying imported facts. Stale or altered-source previews are rejected.
-- Portable workflow instructions with progressive references for each job-search stage.
-- Fresh profile and durable job records, deduplication, fit assessments, notes, contacts and unsent outreach drafts.
-- Document copies with hashes; review snapshots tied to the profile, answers and exact files.
-- Per-job pause/resume, explicit queue selection, submission authorization records, and uncertain-result recovery.
-- A private HTML review report and JSON state export.
-- A charcoal dashboard with direct role/location search, posting-date filters, ranked results including low matches, timestamped search lists, and the same profile/documents/contacts/activity views.
-- Installation, ZIP packaging, automated behavior tests and a local browser-form simulation.
+Just ask in plain English. For example:
 
-The host AI performs web research, document authoring and browser actions through tools it already has. The dashboard can fetch supported public job feeds directly. The Python helpers **do not fill employer forms, send messages or submit applications**. Installing the skill does not add those tools or grant permissions. Browser workflows work only where the host tools and site access permit them; universal form support and unattended applications on LinkedIn/Indeed are not claimed. Live employer applications have not been submitted in release validation.
+> Set up my profile from my resume at C:\Users\me\resume.pdf
 
-## Search from the dashboard
+> Find Data Analyst jobs in Toronto posted in the last week
 
-Enter a **job role**, **location**, and **posting-date range**. The default **LinkedIn + Indeed** mode saves a primary search request and opens a prompt to run with your connected AI/browser. Both portals are required. Only verified employer/ATS application routes enter the ranked list; LinkedIn Easy Apply and Indeed on-platform applications are excluded. Unknown routes remain excluded until verified. All eligible scores, including low matches, stay visible. Blocked source access is recorded honestly.
+> Tailor my resume for the top 3 jobs and show me before saving
 
-The explicitly selected **Supplementary public feeds** mode runs locally without an AI session or API key. It keeps all role candidates within the date range, but does not satisfy the required primary-source coverage or verify external-application eligibility.
+> Fill in the applications and stop at Review for me to submit
 
-Supplementary sources are [Remotive](https://remotive.com/remote-jobs/api), [Jobicy](https://github.com/Jobicy/remote-jobs-api), and [Arbeitnow](https://www.arbeitnow.com/blog/job-board-api), via their public JSON feeds. Remotive/Jobicy focus on remote jobs; Arbeitnow covers Europe, primarily Germany. This dashboard search does **not** scrape LinkedIn or Indeed. The host AI performs the required LinkedIn/Indeed search through permitted tools; no direct portal scraper is bundled.
+> Check Gmail for replies to my applications
 
-Remotive is cached for six hours and its public jobs are delayed by 24 hours. Jobicy covers the last seven days. Jobicy and Arbeitnow are cached for one hour; each refresh stops after five pages and reports incomplete coverage when more pages exist. Source errors, invalid rows, date-filter exclusions and fetch timestamps are visible in each list. Repeating a search creates a new list but may use the same cached feed data. There is no claim of exhaustive regional coverage.
+> What skills do my target jobs ask for that I don't list?
 
-Automatic relevance is a transparent 0–100 comparison: title words up to 45, description words up to 15, and location text up to 40. It is not an AI fit assessment or a hiring probability. AI assessments remain separate. Geographic matching is textual; a broad remote restriction does not prove eligibility in a specific city.
+> Show my progress this week
 
-Each row shows the source's posting date, or **Unknown**. Date-filtered searches exclude unknown dates unless the checkbox includes them; any-time searches include them. The window is measured backward from the search start. Source dates without a timezone are treated as UTC; the browser displays dates/times in its local timezone. **Search history** preserves a timestamped snapshot for every run, including per-source fetch times, so yesterday's list remains available when you search today. Searches run when requested; this release does not schedule a daily search automatically.
+### Try it with fake data first
 
-## Profile setup choices
+Want to look around before using your own details? Run a demo workspace:
 
-Choose **Import resume**, **LinkedIn profile/export**, **Indeed profile/export**, or **Answer questions**. Combine sources if useful. The agent extracts professional facts, preserves existing confirmed answers, flags conflicts, and shows a proposed profile before applying it. Nothing is automatically copied from the original reference project's profile.
-
-Account exports are local file imports, not account connections. Direct account reads require an already available permitted connector/browser and your authorization; there is no built-in LinkedIn/Indeed OAuth integration. LinkedIn archives default to professional-profile CSVs and skip messages/connections. Other archives require selecting the relevant files after inspection.
-
-The core helper and DOCX/text/CSV/JSON imports use Python's standard library. PDF extraction optionally requires `pypdf` (`python -m pip install -r skills/careerpilot/scripts/requirements-pdf.txt`) or an existing host PDF tool. Scanned PDFs need OCR/visual review through the host; the importer does not include OCR. No extraction sends files to a service.
-
-## User experience
+```bash
+python skills/careerpilot/scripts/toolkit.py --workspace demo-workspace demo
+python skills/careerpilot/scripts/toolkit.py --workspace demo-workspace dashboard --open
+```
 
 ### Open your dashboard
 
-On Windows, double-click **`Open Dashboard.cmd`** in this repository. It opens the default `job-search-workspace` in your browser and creates an empty workspace if needed. Keep the terminal running; Ctrl+C stops the dashboard. To use another saved workspace, pass its path as the launcher's first argument or ask your AI to open that workspace's dashboard.
+The dashboard shows your jobs, documents, applications and results in your browser. Ask your agent to "open my CareerPilot dashboard". On Windows you can also double-click **`Open Dashboard.cmd`**.
 
-From any installed copy of the skill:
+It runs only on your computer, and it never submits applications or sends email.
 
-```powershell
-python "SKILL_DIR/scripts/toolkit.py" --workspace "WORKSPACE" dashboard --open
+---
+
+## Your data and privacy
+
+- Your profile, jobs and documents are stored in a **private folder you choose**, separate from the skill. Never commit that folder to Git.
+- Saved passwords are encrypted: Windows uses DPAPI, macOS uses Keychain and Linux uses Secret Service.
+- Gmail access is **read-only** and limited to job emails.
+- Back up anytime with `backup --archive FILE`. Delete everything with `secure-delete`. See [setup](skills/careerpilot/references/setup.md).
+
+---
+
+## Updating
+
+Download the latest version, move your old installed `careerpilot` skill folder somewhere else (the installer won't overwrite it), and run the install command again. Your private job-search folder upgrades automatically and is backed up first. See [UPGRADE.md](UPGRADE.md).
+
+---
+
+## FAQ
+
+**Is it free?** Yes. You only need your own AI agent subscription.
+
+**Does it work with ChatGPT or Gemini on the web?** No. It needs an agent that can run files, Python and a browser, such as Claude Code or Codex.
+
+**Will employers know an AI helped?** CareerPilot fills forms the same way you would, and you press Submit yourself. The resumes contain your real experience.
+
+**Which countries?** Any. Search location, currency and work-permit questions are configurable. It was built and tested for Canada.
+
+**Something isn't working.** Run `python skills/careerpilot/scripts/toolkit.py --workspace YOUR-FOLDER doctor` for plain-English fixes, or [open an issue](https://github.com/SanketParab3004/CareerPilot/issues).
+
+---
+
+## Learn more
+
+- [How the skill works (SKILL.md)](skills/careerpilot/SKILL.md)
+- [Resume tailoring](skills/careerpilot/references/resume-tailoring.md) · [Applications](skills/careerpilot/references/application-quality.md) · [Gmail tracking](skills/careerpilot/references/email-review.md) · [Learning from results](skills/careerpilot/references/learning.md)
+- [Compatibility](COMPATIBILITY.md) · [Changelog](CHANGELOG.md)
+
+## For developers
+
+```bash
+python -m unittest discover -s tests -v   # run tests (synthetic data only)
+python tools/package_skill.py             # build dist/careerpilot.zip
 ```
-
-Initialize a new workspace with `init` first. The dashboard refreshes every five seconds while visible, uses a per-session local URL, and binds only to this computer. Use `--port 0` if the default port 8765 is occupied. No extra packages, hosting, or model API are required.
-
-The dashboard defaults to required LinkedIn/Indeed search requests; optional supplementary feed searches run locally. Both use the canonical state helper. It also provides copyable requests for your AI chat. It does not run an AI agent, import profiles, grant permissions, or submit applications. Documents download only if they still match their registered content. Export data downloads state JSON; include workspace artifacts and imports separately for a full backup.
-
-Ask in ordinary language. The skill offers a short task menu when useful and returns job tables, clear next actions and a read-only HTML report. All browser filling ends at review by default. Specific submission approval or a scoped automatic batch can be recorded when authorized, subject to the host's permission requirements. Contact outreach has separate authorization.
-
-Candidate data goes in an explicit private workspace, outside the installed skill. The helper initializes a workspace ignore file; avoid placing data in source control. Workspace files are not encrypted by this package. Browser sessions and credentials remain managed by the host. A database backup must include the artifacts directory to preserve document bytes.
-
-## Repository layout
 
 ```text
-skills/careerpilot/    Canonical installable skill
-tools/                   Installer and ZIP builder
-tests/                   State/packaging tests and local browser fixture
-legacy/dashboard/        Archived standalone prototype; separate data model
+skills/careerpilot/   The installable skill (instructions + Python helper)
+tools/                Installer and packager
+tests/                Automated tests
+legacy/dashboard/     Old standalone prototype, not used by the skill
 ```
 
-The archived dashboard is retained for reference and is not synchronized with the skill workspace. Use the new skill dashboard or generated report for current saved state.
+The Python helper uses only the standard library. PDF import optionally uses `pypdf`.
 
-## Validate and package
+## License
 
-```powershell
-python -m unittest discover -s tests -v
-python tools/package_skill.py
-```
-
-The ZIP is written to `dist/careerpilot.zip`, containing only the canonical skill folder. It excludes runtime data, caches and the archived dashboard. A ZIP does not guarantee support by every chat interface; use that host's documented skill installation flow.
-
-Workspace backups should include `imports/` to preserve evidence behind reviewed profile changes, along with the database and application artifacts.
-
-Installation references: [Codex skills](https://learn.chatgpt.com/docs/build-skills), [Claude Code skills](https://code.claude.com/docs/en/skills).
-
-
-## Accounts and phone assistance (0.6)
-
-Open **Accounts & alerts** in the dashboard to save default signup details, approve exact career-site origins for login/signup, and securely save existing passwords. New signups can receive unique generated passwords. Windows DPAPI protects the private settings database; secrets are excluded from workspace exports. Non-Windows hosts currently need password-manager autofill/manual assistance.
-
-Configure a Telegram bot in the same screen: create it with @BotFather, send /start to your bot, paste its token locally, select **Find my Telegram chat**, choose your account, enable alerts, save, and send a test. Do not paste secrets into AI chat. Normal low-volume bot alerts require no extra AI calls.
-
-Every agent `pause` creates an **Assistance** request and attempts one phone alert, even if the dashboard is closed. Failed delivery can be retried. Resolve the blocker through your separately configured Chrome Remote Desktop, enter a note, and return the job to the queue. Keep the laptop awake and the application agent running; notifications do not start a background AI session.
-
-Automatic credential filling requires host password-manager support or the optional Playwright bridge connected to an existing authorized local CDP browser. The bridge fills but never submits; the host handles approved login/signup clicks and observed confirmation. MFA, CAPTCHA, unsupported browsers, and host-required confirmations still need assistance. Account permissions do not authorize application submission.
-
-See [full setup and browser compatibility](skills/careerpilot/references/accounts-and-assistance.md). The portable core is standard-library-only; the optional credential bridge requires `python -m pip install playwright` in the Python environment used by the host.
-
-
-## Gmail application updates (0.7)
-
-**Email updates** adds a read-only Gmail review workflow, application response statuses, supporting message excerpts and Gmail links, review/dismiss controls, optional automatic updates for confirmed matches and clear outcomes, and dated check history. It distinguishes application received, under review, assessment, interview, rejected, offer, withdrawn and unknown.
-
-Connect Gmail through your AI host, enter the intended mailbox in the dashboard, and enable review of emails related to saved applications. Use **Check Gmail with AI** and paste the generated request into your host agent. The dashboard does not itself connect to Gmail or launch a background agent. No email passwords or OAuth tokens are stored locally for this feature, and it never sends or modifies mail.
-
-The agent matches messages to exact saved applications, records minimal evidence, and imports through transactional state commands. Repeated message IDs are deduplicated; older, regressive, ambiguous and conflicting outcomes are held for review. An uncertain submission must be reconciled before applying an email outcome. “Approved for another round” is not treated as an employment offer.
-
-See [Gmail review agent](skills/careerpilot/references/email-review.md). Scheduled checks require a separately configured host scheduler; no schedule is installed automatically. Gmail access remains inactive until the user configures and authorizes the account.
-
-
-## Required portals and application filter (0.8)
-
-LinkedIn and Indeed are now the primary required sources. Exclude Easy Apply, Indeed Apply / Apply with Indeed / Easily apply, and mixed listings that also offer an on-platform route. Import only recently verified external employer/ATS applications, preserving the original portal link, employer destination, posting date and verification evidence. Both portal outcomes must be recorded before a run can finish. A blocked portal yields partial/failed coverage, not a silent public-feed fallback.
-
-Primary requests run through the host AI/browser after copying the dashboard prompt. The dashboard does not independently scrape these portals or start an agent. Historical saved jobs are retained and are not retroactively verified; recheck their routes before applying. See [primary portal workflow](skills/careerpilot/references/portal-search.md).
-
-## Stage 1: clear the backlog
-
-Action queue groups candidate work by type or exact ATS tenant, with deadline priority, reasons, evidence and effort estimates. Login sittings, batched reusable answers, durable checkpoint history, live resume checks, posting freshness gates and candidate-sent application drafts extend the canonical helper. See [workflow and operation contract](skills/careerpilot/references/backlog.md).
-
-Existing workspaces migrate automatically to schema 2, with a verified backup in their private `backups/` directory first. Close older helpers/dashboards before upgrading. The real workspace was not used for development. Freshness checks are now required before document preparation, form work and submission. Dashboard actions save state; the host agent still performs browser work. No automatic mail sending or background AI runner was added.
-
-## Stage 2: learn from results
-
-Funnel analytics and Weekly review now show application attribution, dated outcomes, response/interview/offer rates by eleven factors, sample sizes, reply timing, stale updates and stated rejection reasons. Statistical proposals require at least 20 complete, sufficiently aged applications in each comparison group, explain correlation only, and need explicit approval. Undo removes future ranking/tailoring guidance. Silence never becomes rejection automatically.
-
-Schema 3 upgrades existing workspaces with a verified private backup first. Close older processes before opening the updated dashboard. The real workspace and existing installed skill copies were not changed during development. See [workflow, definitions and operation contract](skills/careerpilot/references/learning.md).
-
-## Stage 3: referrals and daily jobs
-
-Referrals imports only user-supplied LinkedIn exports/CSVs, explains warm-path evidence and confidence, offers a visible optional ranking boost, and tracks honest drafts, separately authorized messages, replies, referrals and declines. Cadence and do-not-contact checks prevent repeated outreach. Hiring-contact cards retain verification dates/evidence. Networking results join Stage 2 analytics.
-
-Daily digest adds saved search profiles, per-search candidate rules, a shared maximum of five preparations per UTC day, verified-requisition deduplication, visible quality/repeat-application warnings and approve/skip/snooze decisions. Approval reuses the existing reviewed-snapshot authorization flow; no submission happens in the dashboard. LinkedIn/Indeed partial coverage stays explicit.
-
-Ask your tool-enabled AI: **Run my daily top five using saved search profile PROFILE_ID.** The dashboard saves the run and provides a prompt to the host; it does not start an agent. Scheduler setup is explicit and optional. Telegram digest notices require opt-in and existing private settings. See [networking](skills/careerpilot/references/networking.md) and [daily workflow](skills/careerpilot/references/daily.md). Schema 4 migrates with a verified private backup first; stop older processes before use.
-
-
-## Stage 4: better applications and documents
-
-Application quality adds portable ATS playbooks, normalized field memory with changed-wording review, observed field/upload evidence, structured failures and bounded handoffs. Every submit now requires a fresh comparison of the live job, answers, files and exact authorization. Confirmation text, private screenshots and matched email receipt references remain separate evidence events.
-
-Document registration is draft-only. Source-backed claims, requirement coverage/gaps, honest keywords, final-file parsing, rendered-file checks and a recruiter critique precede candidate approval and exact-job attachment checks. Candidate page/section rules never truncate content. Per-job version diffs and truthful role-family variants join the existing outcome analytics. The dashboard Application quality view shows the saved evidence and failures.
-
-Schema 5 migrates automatically with a verified private backup; stop old helpers/dashboards first. Existing records/grants remain, but old documents/checkpoints need the new checks before future use. Refresh installed skill copies normally. The host still performs authoring, visual/semantic review and browser work; no universal ATS compatibility or interview improvement is claimed. See [document quality](skills/careerpilot/references/document-quality.md) and [application quality](skills/careerpilot/references/application-quality.md).
-
-Stage 5 adds private interview and offer records. See [interviews and offers](skills/careerpilot/references/interviews.md). Schema 6 upgrades with a private backup.
-
-## CareerPilot 1.0.0
-
-[Quickstart and private workspace commands](skills/careerpilot/references/setup.md) · [Compatibility](COMPATIBILITY.md) · [Upgrade](UPGRADE.md) · [Changelog](CHANGELOG.md)
-
-## Account access and activation
-
-In **Accounts & alerts**, save the default signup email and approve exact career sites
-for login/signup. New accounts can use a generated, encrypted, site-specific password.
-The separate **Verify new accounts with Gmail** form enables activation for an exact
-mailbox, trusted sender addresses and HTTPS destinations. The host checks live results,
-reads only matching recent activation mail, verifies the account and resumes the job.
-Generic login errors never trigger signup; ambiguous activation is never replayed.
-CAPTCHA, MFA, unsupported secret handling and missing permissions use Assistance.
-See [account access](skills/careerpilot/references/account-access.md). This is a host
-workflow, not a Gmail client or background service; application submit permission stays
-separate. Refresh installed skills or re-upload the newly built ZIP to use it.
+[MIT](LICENSE). Free to use, change and share.
