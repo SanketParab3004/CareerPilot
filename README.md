@@ -17,8 +17,8 @@ So I built a co-pilot to do the repetitive parts with&nbsp;me.
 </p>
 
 <p align="center">
-<strong>136&nbsp;jobs ranked. 54&nbsp;applications sent. Every resume tailored.</strong><br>
-I'm its first user, and the search is still&nbsp;going.
+<strong>Every job ranked. Every resume tailored. Every reply tracked.</strong><br>
+I built it for my own search and use it&nbsp;daily.
 </p>
 
 <p align="center">
