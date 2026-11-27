@@ -113,6 +113,8 @@ The dashboard shows your jobs, documents, applications and results in your brows
 
 It runs only on your computer, and it never submits applications or sends email.
 
+![CareerPilot dashboard Today view showing saved jobs, applications needing attention and applications sent](docs/dashboard.png)
+
 ---
 
 ## Your data and privacy
