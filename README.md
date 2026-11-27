@@ -6,6 +6,9 @@ You tell it what jobs you want. It finds them, ranks how well you fit, writes a 
 
 Everything stays on your computer. There's no account, no subscription and no API key.
 
+![CareerPilot dashboard showing saved jobs, applications needing attention and applications sent](docs/dashboard.png)
+<sub>The local dashboard, shown with demo data.</sub>
+
 ---
 
 ## What it does
