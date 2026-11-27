@@ -92,6 +92,46 @@ class QualityTests(unittest.TestCase):
         d['keywords'][0]['sources'][0]['quote']='Java'
         with self.assertRaises(ValueError):self.ws.mutate(d)
 
+    def test_keyword_literal_boundaries(self):
+        for text, keyword in [('SQL, Python', 'sql'), ('Use C++ and C#', 'C++'),
+                              ('Use C++ and C#', 'C#'), ('Use .NET.', '.NET'),
+                              ('Power\n BI reports', 'Power BI'), ('Node.js, SQL', 'Node.js'),
+                              ('Analyse de données', 'données')]:
+            with self.subTest(text=text, keyword=keyword):
+                self.assertTrue(dq.contains_keyword(text, keyword))
+        for text, keyword in [('JavaScript', 'Java'), ('marketing', 'R'),
+                              ('NoSQL', 'SQL'), ('C++', 'C'), ('C#', 'C'),
+                              ('SQLAlchemy', 'SQL'), ('Pythonista', 'Python'), ('SQL', '')]:
+            with self.subTest(text=text, keyword=keyword):
+                self.assertFalse(dq.contains_keyword(text, keyword))
+
+    def test_keyword_substrings_rejected_in_posting_source_and_document(self):
+        # Each case isolates one of the three evidence surfaces. Failed verification
+        # must not create a new verification or replace a previous approved review.
+        for posting, source, content, error in [
+            ('JavaScript experience', 'Java experience', 'Java experience', 'absent from posting'),
+            ('Java experience', 'JavaScript experience', 'Java experience', 'candidate lacks'),
+            ('Java experience', 'Java experience', 'JavaScript experience', 'absent from final')]:
+            with self.subTest(error=error):
+                self.op('profile-save', profile={'fixture_document': content, 'skills': [source]})
+                self.number += 1
+                jid = self.op('job-add', title='Synthetic Developer', company='Fixture',
+                              description=posting, source='Synthetic',
+                              url=f'https://example.invalid/jobs/{self.number}')['job_id']
+                self.op('freshness-record', job_id=jid, route_url='https://example.invalid/apply',
+                        checked_at=clock(), open=True, route_valid=True, evidence='Synthetic route')
+                doc = self.doc(jid, content)
+                payload = verification_payload(self.ws, jid, doc['sha256'], content)
+                verified = self.ws.mutate(payload)
+                self.op('document-approve', job_id=jid, sha256=doc['sha256'],
+                        verification_id=verified['verification_id'], candidate_instruction='Synthetic review')
+                before = self.ws.read()['document_quality']
+                payload['keywords'] = [dict(keyword='Java', sources=[
+                    dict(kind='profile', pointer='/skills/0', quote=source)])]
+                with self.assertRaisesRegex(ValueError, error):
+                    self.ws.mutate(payload)
+                self.assertEqual(before, self.ws.read()['document_quality'])
+
     def test_rules_do_not_truncate_and_unknown_page_count_blocks(self):
         jid=self.job();doc=self.doc(jid);original=(self.ws.root/doc['path']).read_bytes()
         self.assertIsNone(self.ws.read()['document_quality']['rules']['page_limit'])

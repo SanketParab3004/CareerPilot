@@ -1,5 +1,8 @@
 # Application quality: observations before actions
 
+For automatic login, signup and separately authorized Gmail activation, follow
+[account access](account-access.md).
+
 Use [site playbooks](site-playbooks.md) for ATS detection, page-flow hints, bounded
 fallbacks and recovery. All writes below use `toolkit.py --workspace WORKSPACE run
 --input REQUEST.json`. `quality` and dashboard **Application quality** expose field

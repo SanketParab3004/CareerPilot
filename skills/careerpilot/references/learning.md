@@ -129,6 +129,24 @@ Completed documents and application snapshots stay intact. Approved experiments 
 active until undone; new results do not silently replace candidate-approved choices.
 Review them weekly and undo/re-propose when evidence changes.
 
+## Candidate edits to drafts
+
+When the candidate changes a resume, cover letter, answer or message you drafted (or
+tells you exactly what to change), record it with `learning-edit`: `job_id`,
+`document` resume/cover_letter/answer/message/other, `before`, `after`, optional
+`reason` in the candidate's words, and `candidate_made: true`. `guidance` returns the
+newest edits under `candidate_edits`. Read them before drafting and follow the stated
+reasons. An edit is a style or emphasis preference, never evidence for a new claim.
+
+## Market view
+
+`market` (optional `--role`) is read-only. It counts how many saved postings mention
+each profile skill, lists up to 15 common skills the profile does not list (at least
+two postings), and groups pay published in posting text by target role and
+hour/year. Pay is parsed text in the posted currency, not converted; verify before
+quoting it. Use missing skills as learning ideas only; never add them to a resume
+without candidate evidence.
+
 ## Weekly review and outcome hygiene
 
 `weekly` is a rolling seven-day read-only review: recorded actions, confirmed dated

@@ -188,3 +188,50 @@ Stage 5 validation: 151 synthetic tests passed. Initial fixture run exposed opti
 ## Stage 6 release validation
 
 155 synthetic tests passed on Windows. Codex, Claude and generic installer paths succeeded in temporary directories. Installed demo, doctor and wrong-workspace refusal were exercised. Node syntax check passed. The release ZIP matches the explicit 43-file source manifest, with no workspace data, runtime files or caches. Live connectors, native macOS/Linux keychains, optional archive encryption and mobile visual behavior were not verified.
+
+## Resume-tailoring refinement — November 19, 2026
+
+`python -m unittest discover -s tests -v`: 160 tests passed, zero failures or skips.
+New synthetic checks cover literal skills (including C++, C#, .NET and Unicode),
+whitespace normalization, false substring matches at all three evidence surfaces,
+and rollback preserving the previous approved review after rejected verification.
+Existing migration, evidence, page-limit, approval and source-tampering tests passed.
+No schema or persisted record shape changed, so no new migration is needed.
+
+Initial run: three subcase errors in the new test due to a missing synthetic
+freshness-record (ValueError: Recheck live posting and application route; record
+freshness before spending effort); the fixture now supplies that record. One existing
+dashboard test, test_search_post_validates_body_and_has_no_submit_api, raised
+ConnectionAbortedError [WinError 10053]. It passed on the full rerun with no production
+change to that path. Final run had no errors.
+
+Writing quality remains a host responsibility. These checks do not measure interview
+conversion or prove a model obeys every writing instruction. Real-world review should
+compare an original and tailored resume against the same complete posting, verify
+claims with the candidate, and inspect the actual PDF/DOCX on the intended host.
+No personal workspace, job site, employer, Gmail or Telegram was used for validation.
+
+## Account access and Gmail activation — November 19, 2026
+
+`python -m unittest discover -s tests -v`: 171 passed, zero failures or skips.
+Eleven new portable synthetic tests cover signup/activation/login, explicit missing
+account versus ambiguous credentials, separate consent, wrong mailbox/sender/origin,
+old/future mail, secret-field rejection, code/link modes, approved external activation
+origins, message reuse across attempts, interrupted actions, duplicate signup refusal,
+revocation/expiry, unchanged application permissions, private schema-1 backup/retry,
+idempotence and future-version refusal. Existing Windows encrypted-storage tests pass.
+The first full run passed 169 tests; the final run adds two replay/route cases and
+passes 171. No observed failures in either run.
+
+The new helper CLI help and dashboard JavaScript syntax checks pass. Packaging uses
+the explicit source manifest (48 files), excluding private state, runtime artifacts,
+caches and design previews. The new account-settings controls have not received a
+visual browser review. No live Gmail read, account creation, email activation, browser
+credential fill or job submission was performed. These remain host-dependent and
+require an authorized end-to-end check on a candidate-selected site.
+
+Private settings migrate to schema 2 on first write, with an encrypted SQLite backup
+under the private workspace backups directory before any legacy update. Stop older
+helpers before upgrading; the canonical toolkit schema is unchanged. Existing site
+permissions/credentials are preserved and account verification is off until explicitly
+configured. The real job-search-workspace and installed skill copies were not modified.

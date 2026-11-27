@@ -59,3 +59,5 @@ Report the actual check scope, counts, applied outcomes, uncertain matches and e
 ## Stage 2 results integration
 
 Read [results and learning](learning.md) for schema-3 attribution, dated outcome history, sample-aware funnel rates, weekly review, stale-update settings, rejection reasons and approved adjustments. Use `analytics`, `weekly` and `guidance`; only the helper changes persistent state. Applied Gmail outcomes feed history, while pending/dismissed mail does not. Before new document preparation, consult approved tailoring guidance and record the actual approach with evidence. Statistical proposals require candidate approval and support undo; they do not authorize application submission or outreach.
+
+Account activation is a separate, explicitly authorized workflow in [account access](account-access.md). Outcome-review permission never permits activation links or codes.

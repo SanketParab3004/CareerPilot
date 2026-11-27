@@ -22,6 +22,16 @@ def empty():
 def norm(value):
     return ' '.join(value.split())
 
+def contains_keyword(text, keyword):
+    """Literal, case-insensitive phrase match; not a skill-equivalence judgment."""
+    phrase = norm(keyword).casefold()
+    if not phrase:
+        return False
+    # Keep C/C++/C# and Java/JavaScript distinct; allow punctuation around a skill.
+    return re.search(r'(?<![\w+#])' + re.escape(phrase) + r'(?![\w+#])',
+                     norm(text).casefold()) is not None
+
+
 def current(state, jid, sha):
     item = next((d for d in state['jobs'][jid]['documents'] if d['sha256'] == sha), None)
     need(item is not None, 'Document is not registered to this job')
@@ -213,10 +223,10 @@ def apply(ws, state, d):
         words(d.get('requirements_review'), 'Evidence that all material posting requirements were reviewed')
         keywords = d.get('keywords', [])
         for item in keywords:
-            word = words(item.get('keyword'), 'keyword'); need(word.casefold() in job['description'].casefold(), 'Keyword absent from posting')
+            word = words(item.get('keyword'), 'keyword'); need(contains_keyword(job['description'], word), 'Keyword absent from posting')
             refs = sources(ws, state, item.get('sources'))
-            need(any(word.casefold() in r['quote'].casefold() for r in refs), 'Do not add a keyword/skill the candidate lacks')
-            need(word.casefold() in content.casefold(), 'Keyword absent from final document')
+            need(any(contains_keyword(r['quote'], word) for r in refs), 'Do not add a keyword/skill the candidate lacks')
+            need(contains_keyword(content, word), 'Keyword absent from final document')
         critique = d.get('critique'); need(isinstance(critique, dict), 'Recruiter-style critique required before approval')
         for field in ('clarity','relevance','evidence','gaps','improvements'): words(critique.get(field), 'critique '+field)
         findings = critique.get('findings'); need(isinstance(findings, list), 'Critique needs a findings list')

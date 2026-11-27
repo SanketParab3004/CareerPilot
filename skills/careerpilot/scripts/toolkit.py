@@ -10,6 +10,7 @@ import release_tools
 import interviews
 import document_quality
 import application_quality
+import market
 import hashlib
 import html
 import json
@@ -549,6 +550,7 @@ def main():
     for name in ['init', 'status', 'next', 'report', 'export', 'accounts', 'migrate', 'queue', 'analytics', 'weekly', 'guidance', 'referrals', 'digests', 'quality', 'interviews']:
         sub.add_parser(name)
     sub.add_parser('demo')
+    sub.add_parser('market').add_argument('--role', help='Only postings whose title contains this role')
     doctor = sub.add_parser('doctor')
     for capability in ('browser', 'gmail'):
         doctor.add_argument('--' + capability, choices=['unknown','available','unavailable'], default='unknown')
@@ -618,7 +620,9 @@ def main():
             elif args.command == 'weekly':
                 result = learning.weekly(state)
             elif args.command == 'guidance':
-                result = {'tailoring': learning.guidance(state), 'approved_adjustments': learning.active(state)}
+                result = {'tailoring': learning.guidance(state), 'approved_adjustments': learning.active(state), 'candidate_edits': learning.edits(state)}
+            elif args.command == 'market':
+                result = market.view(state, args.role)
             elif args.command == 'queue':
                 result = {'items': backlog.queue(state)}
             elif args.command == 'status':
